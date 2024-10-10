@@ -49,6 +49,19 @@ async def create_new_user(
     return data
 
 
+@router.delete("/users/delete/{user_id}")
+async def delete_user_account_completely(user_id: int) -> dict:
+    if user_model.delete_user(user_id):
+        return {
+            "message": "User account has been deleted successfully",
+            "status": 200
+        }
+    return {
+        "message": "User account could not be deleted",
+        "status": 500
+    }
+
+
 # @router.get("/user-name/")
 # async def get_user_by_name(
 #     name: str
