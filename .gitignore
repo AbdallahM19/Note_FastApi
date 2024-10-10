@@ -2,4 +2,3 @@ api/__pycache__
 api/models/__pycache__
 api/routers/__pycache__
 api/*
-__init__.py
