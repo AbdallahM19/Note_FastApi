@@ -93,8 +93,22 @@ class User():
         finally:
             self.sess.close()
 
-    def delete_user(self, user_id):
-        pass
+    def delete_user(self, user_id: int) -> bool:
+        try:
+            user = self.sess.query(User_db).filter(
+                User_db.id == user_id
+            ).first()
+            if user:
+                self.sess.delete(user)
+                self.sess.commit()
+                return True
+            return False
+        except Exception as e:
+            self.sess.rollback()
+            print("Error deleting user with id {}: {}".format(user_id, e))
+        finally:
+            self.sess.close()
+                
 
     def convert_class_user_to_object(self, user) -> dict:
         return {
