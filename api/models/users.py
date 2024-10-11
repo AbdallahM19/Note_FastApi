@@ -77,8 +77,20 @@ class User():
             )
         ).first()
         if user_existed:
-            return True
+            return user_existed
         return False
+
+    def authenticate_user(self, username: str, password: str):
+        user = self.sess.query(User_db).filter(
+            and_(
+                or_(
+                    User_db.username == username,
+                    User_db.email == username
+                ),
+                User_db.hashed_password == password
+            )
+        ).first()
+        return self.convert_class_user_to_object(user)
 
     def insert_new_user(self, **kwargs: dict):
         try:
