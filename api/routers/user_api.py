@@ -1,9 +1,10 @@
+"""user_api.py"""
+
 from fastapi import APIRouter
+from api.app import user_model
 from typing import List, Union
-from api.models.users import User
 
 router = APIRouter()
-user_model = User()
 
 
 @router.get("/users")
