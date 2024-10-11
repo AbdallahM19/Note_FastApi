@@ -7,6 +7,17 @@ user_model = User()
 
 
 @router.get("/users")
+async def get_limit_user(
+    skip: Union[int, None] = 0,
+    limit: Union[int, None] = 5,
+    name: Union[str, None] = None
+) -> Union[str, dict, list]:
+    if name:
+        return user_model.get_user_by_username(name)
+    return user_model.get_all_users_data(skip, skip + limit)
+
+
+@router.get("/users/")
 async def get_all_users() -> List[dict]:
     return user_model.get_all_users_data()
 
@@ -19,17 +30,6 @@ async def get_current_user() -> dict:
 @router.get("/users/{user_id}")
 async def get_user_by_id(user_id: int) -> dict:
     return user_model.get_user_by_id(user_id)
-
-
-@router.get("/users/")
-async def get_limit_user(
-    skip: Union[int, None] = 0,
-    limit: Union[int, None] = 5,
-    name: Union[str, None] = None
-) -> Union[str, dict, list]:
-    if name:
-        return user_model.get_user_by_username(name)
-    return user_model.get_all_users_data(skip, skip + limit)
 
 
 @router.post("/users/new")
