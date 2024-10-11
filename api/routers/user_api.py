@@ -69,7 +69,7 @@ async def update_user_data(
     }
 
 
-@router.delete("/users/delete/{user_id}")
+@router.delete("/users/{user_id}/delete")
 async def delete_user_account_completely(user_id: int) -> dict:
     if user_model.delete_user(user_id):
         return {
