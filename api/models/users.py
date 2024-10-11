@@ -93,6 +93,25 @@ class User():
         finally:
             self.sess.close()
 
+    def update_user_account(self, **kwargs):
+        try:
+            user = self.sess.query(User_db).filter(
+                User_db.id == kwargs['id']
+            ).first()
+            if user:
+                for key, value in kwargs.items():
+                    if key != 'id' and value is not None:
+                        setattr(user, key, value)
+                self.sess.commit()
+                return self.convert_class_user_to_object(user)
+            return False
+        except Exception as e:
+            self.sess.rollback()
+            print("Error updating user account: {}".format(e))
+            return False
+        finally:
+            self.sess.close()
+
     def delete_user(self, user_id: int) -> bool:
         try:
             user = self.sess.query(User_db).filter(
