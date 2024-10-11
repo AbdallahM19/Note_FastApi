@@ -32,7 +32,7 @@ async def get_limit_user(
     return user_model.get_all_users_data(skip, skip + limit)
 
 
-@router.post("/user")
+@router.post("/users/new")
 async def create_new_user(
     username: str, email: str, password: str,
     date_of_birth: Union[str, None] = None,
