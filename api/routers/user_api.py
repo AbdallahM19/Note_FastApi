@@ -49,6 +49,26 @@ async def create_new_user(
     return data
 
 
+@router.put("/users/{user_id}/update")
+async def update_user_data(
+    user_id: int, username: Union[str, None] = None,
+    email: Union[str, None] = None, password: Union[str, None] = None,
+    date_of_birth: Union[str, None] = None, description: Union[str, None] = None
+):
+    user_updated = user_model.update_user_account(
+        id=user_id, username=username, email=email, hashed_password=password,
+        date_of_birth=date_of_birth, description=description
+    )
+    return {
+        "message": "User data updated successfully",
+        "user_data": user_updated,
+        "status": 200
+    } if user_updated else {
+        "error": "User data update failed",
+        "status": 500
+    }
+
+
 @router.delete("/users/delete/{user_id}")
 async def delete_user_account_completely(user_id: int) -> dict:
     if user_model.delete_user(user_id):
