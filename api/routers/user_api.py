@@ -8,19 +8,14 @@ router = APIRouter()
 
 
 @router.get("/users")
-async def get_limit_user(
-    skip: Union[int, None] = 0,
-    limit: Union[int, None] = 5,
+async def get_all_or_limit_users(
+    skip: Union[int, None] = None,
+    limit: Union[int, None] = None,
     name: Union[str, None] = None
 ) -> Union[str, dict, list]:
     if name:
-        return user_model.get_user_by_username(name)
-    return user_model.get_all_users_data(skip, skip + limit)
-
-
-@router.get("/users/")
-async def get_all_users() -> List[dict]:
-    return user_model.get_all_users_data()
+        return user_model.get_user_by_username(name, skip, limit)
+    return user_model.get_all_users_data(skip, limit)
 
 
 @router.get("/users/me")
