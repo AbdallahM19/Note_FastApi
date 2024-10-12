@@ -37,28 +37,37 @@ class User():
         ).first()
         return self.convert_class_user_to_object(user)
 
-    def get_user_by_username(self, name: str) -> list:
-        users_data = self.sess.query(User_db).filter(
-            User_db.username.like("%{}%".format(name.lower()))
-        ).all()
-        if users_data:
-            if len(users_data) >= 2:
+    def get_user_by_username(
+        self, name: str, skip: int = None, limit: int = None
+    ) -> Union[list, dict, str]:
+        try:
+            if skip is None and type(limit) is int:
+                skip = 0
+
+            users_data = self.sess.query(User_db).filter(
+                User_db.username.like("%{}%".format(name.lower()))
+            ).offset(skip).limit(limit).all()
+
+            if not users_data:
+                return "User with name {} not found".format(name)
+
+            if len(users_data) == 1:
+                return self.convert_class_user_to_object(users_data[0])
+            else:
                 return [
                     self.convert_class_user_to_object(i)
                     for i in users_data
                 ]
-            elif len(users_data) == 1:
-                return self.convert_class_user_to_object(users_data[0])
-            else:
-                return []
-        return "User with name {} not found".format(name)
+        except Exception as e:
+            print("Error in get_user_by_username: {}".format(e))
+            raise
 
     def get_all_users_data(
         self,
-        skip: Union[int, None] = None,
-        limit: Union[int, None] = None
-    ):
-        if skip and limit:
+        skip: Union[int, None],
+        limit: Union[int, None]
+    ) -> list:
+        if skip is not None and limit is not None:
             users = self.sess.query(User_db).offset(skip).limit(limit).all()
             return [
                 self.convert_class_user_to_object(i)
