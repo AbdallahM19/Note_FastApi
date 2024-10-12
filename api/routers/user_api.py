@@ -33,21 +33,42 @@ async def get_user_by_id(user_id: int) -> dict:
     return user_model.get_user_by_id(user_id)
 
 
-@router.post("/users/new")
-async def create_new_user(
+@router.post("/users/register")
+async def register(
     username: str, email: str, password: str,
     date_of_birth: Union[str, None] = None,
     description: Union[str, None] = None
 ):
-    if user_model.check_if_user_exists(username=username, email=email):
-        return {"error": "User already exists"}
+    try:
+        existing_user = user_model.check_if_user_exists(username, email)
+        if existing_user:
+            return {
+                "message": "User already exists. Please try with different username or email."
+                if existing_user.username == username else
+                "User already exists. Please try with different email.",
+                "status": 400
+            }
 
-    data = user_model.insert_new_user(
-        username=username, email=email, hashed_password=password,
-        date_of_birth=date_of_birth, description=description
-    )
+        user = user_model.insert_new_user(
+            username=username, email=email, hashed_password=password,
+            date_of_birth=date_of_birth, description=description
+        )
 
-    return data
+        return {"message": "User created successfully", "user": user}
+    except Exception as e:
+        return {"message": str(e), "status": 500}
+
+
+@router.post("/users/login")
+async def login(username: str, password: str):
+    try:
+        existed_user = user_model.authenticate_user(username, password)
+
+        if existed_user:
+            return {"message": "User logged in successfully", "user": existed_user}
+        return {"message": "Invalid username or password", "status": 401,}
+    except Exception as e:
+        return {"message": str(e), "status": 500}
 
 
 @router.put("/users/{user_id}/update")
