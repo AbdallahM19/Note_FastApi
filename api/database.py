@@ -24,6 +24,15 @@ class User_db(Base):
     description = Column(String(500), default=None)
 
 
+class Note_db(Base):
+    __tablename__ = 'notes'
+
+    id = Column(Integer, autoincrement=True, primary_key=True)
+    user_id = Column(Integer, nullable=False)
+    title = Column(String(100))
+    message = Column(Text, nullable=False)
+
+
 def create_engine_and_connect():
     """Creates the engine and connects to the database."""
     return create_engine(
