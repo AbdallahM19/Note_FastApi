@@ -1,5 +1,7 @@
-from api import app
+"""main.py"""
+
 import uvicorn
+from api import app
 
 
 if __name__ == "__main__":
