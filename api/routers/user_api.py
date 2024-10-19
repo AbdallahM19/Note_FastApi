@@ -1,8 +1,8 @@
 """user_api.py"""
 
-from fastapi import APIRouter
+from typing import Union
+from fastapi import APIRouter, HTTPException
 from api.app import user_model
-from typing import List, Union
 
 router = APIRouter()
 
@@ -13,6 +13,7 @@ async def get_all_or_limit_users(
     limit: Union[int, None] = None,
     name: Union[str, None] = None
 ) -> Union[str, dict, list]:
+    """Get all users or limit users by name"""
     if name:
         return user_model.get_user_by_username(name, skip, limit)
     return user_model.get_all_users_data(skip, limit)
@@ -20,11 +21,13 @@ async def get_all_or_limit_users(
 
 @router.get("/users/me")
 async def get_current_user() -> dict:
+    """Get the Current user data"""
     return {"user_id": "the current user"}
 
 
 @router.get("/users/{user_id}")
 async def get_user_by_id(user_id: int) -> dict:
+    """Get the user by id"""
     return user_model.get_user_by_id(user_id)
 
 
@@ -34,6 +37,7 @@ async def register(
     date_of_birth: Union[str, None] = None,
     description: Union[str, None] = None
 ):
+    """Register a new user"""
     try:
         existing_user = user_model.check_if_user_exists(username, email)
         if existing_user:
@@ -51,11 +55,16 @@ async def register(
 
         return {"message": "User created successfully", "user": user}
     except Exception as e:
-        return {"message": str(e), "status": 500}
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while registering the user: {str(e)}"
+        ) from e
 
 
 @router.post("/users/login")
 async def login(username: str, password: str):
+    """Login a user"""
+
     try:
         existed_user = user_model.authenticate_user(username, password)
 
@@ -63,7 +72,10 @@ async def login(username: str, password: str):
             return {"message": "User logged in successfully", "user": existed_user}
         return {"message": "Invalid username or password", "status": 401,}
     except Exception as e:
-        return {"message": str(e), "status": 500}
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while logging the user: {str(e)}"
+        ) from e
 
 
 @router.put("/users/{user_id}/update")
@@ -72,6 +84,7 @@ async def update_user_data(
     email: Union[str, None] = None, password: Union[str, None] = None,
     date_of_birth: Union[str, None] = None, description: Union[str, None] = None
 ):
+    """Update user Account"""
     user_updated = user_model.update_user_account(
         id=user_id, username=username, email=email, hashed_password=password,
         date_of_birth=date_of_birth, description=description
@@ -88,6 +101,7 @@ async def update_user_data(
 
 @router.delete("/users/{user_id}/delete")
 async def delete_user_account_completely(user_id: int) -> dict:
+    """Delete user Account permanently"""
     if user_model.delete_user(user_id):
         return {
             "message": "User account has been deleted successfully",
