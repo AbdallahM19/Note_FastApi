@@ -1,16 +1,20 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Enum, Table, text, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
-from datetime import datetime
+"""database.py"""
 
-username = "root"
-password = "Abdallah%402004"
-host = "localhost"
-database = "note_db"
+from datetime import datetime
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import create_engine, Column, Integer, String, Text, text, DateTime
+
+USERNAME = "root"
+PASSWORD = "Abdallah%402004"
+HOST = "localhost"
+DATABASE = "note_db"
 
 Base = declarative_base()
 
-class User_db(Base):
+
+class UserDb(Base):
+    """This class represents the user table in the database."""
     __tablename__ = 'users'
 
     id = Column(Integer, autoincrement=True, primary_key=True)
@@ -18,52 +22,58 @@ class User_db(Base):
     email = Column(String(100), unique=True, nullable=False)
     hashed_password = Column(String(255), nullable=False)
     session_id = Column(String(40), default=None)
-    time_created = Column(DateTime, default=datetime.utcnow)
-    last_opened = Column(DateTime, default=datetime.utcnow)
+    time_created = Column(DateTime, default=datetime.now)
+    last_opened = Column(DateTime, default=datetime.now)
     date_of_birth = Column(Text, default=None)
     description = Column(String(500), default=None)
 
 
-class Note_db(Base):
+class NoteDb(Base):
+    """This class represents the note table in the database."""
     __tablename__ = 'notes'
 
     id = Column(Integer, autoincrement=True, primary_key=True)
     user_id = Column(Integer, nullable=False)
     title = Column(String(100))
-    message = Column(Text, nullable=False)
+    content = Column(Text, nullable=False)
+    time_created = Column(DateTime, default=datetime.now)
+    time_edition = Column(DateTime, default=datetime.now)
 
 
 def create_engine_and_connect():
     """Creates the engine and connects to the database."""
     return create_engine(
-        'mysql+mysqlconnector://{}:{}@{}/{}'.format(
-            username, password, host, database
-        )
+        f'mysql+mysqlconnector://{USERNAME}:{PASSWORD}@{HOST}/{DATABASE}'
     )
 
 def create_database():
     """Creates the database schema."""
     engine = create_engine(
-        'mysql+mysqlconnector://{}:{}@{}/'.format(
-            username, password, host
-    ))
+        f'mysql+mysqlconnector://{USERNAME}:{PASSWORD}@{HOST}/'
+    )
     with engine.connect() as connection:
-        connection.execute(text("CREATE DATABASE IF NOT EXISTS {}".format(database)))
+        connection.execute(
+            text(f"CREATE DATABASE IF NOT EXISTS {DATABASE}")
+        )
     print("Database 'note_db' created or already exists.")
 
 def create_tables():
+    """Creates the tables in the database schema"""
     engine = create_engine_and_connect()
     Base.metadata.create_all(engine)
     print("Tables created or already exist.")
 
 def drop_db():
+    """Drops the database and all tables in it"""
     engine = create_engine_and_connect()
     with engine.connect() as connection:
-        connection.execute(text("DROP DATABASE IF EXISTS {}".format(database)))
+        connection.execute(
+            text(f"DROP DATABASE IF EXISTS {DATABASE}")
+        )
     print("Database 'note_db' dropped.")
 
 def get_session():
     """Return a new session."""
     engine = create_engine_and_connect()
-    Session = sessionmaker(bind=engine)
-    return Session()
+    session = sessionmaker(bind=engine)
+    return session()
