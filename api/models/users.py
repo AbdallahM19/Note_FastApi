@@ -1,7 +1,10 @@
-from sqlalchemy import or_, and_
-from api.database import User_db, get_session
-from pydantic import BaseModel
+"""users.py"""
+
 from typing import Union
+from pydantic import BaseModel
+from sqlalchemy import or_, and_
+from sqlalchemy.exc import SQLAlchemyError
+from api.database import UserDb, get_session
 
 
 class CurrentUser(BaseModel):
@@ -11,6 +14,7 @@ class CurrentUser(BaseModel):
 
 
 class User():
+    """User Class"""
     def __init__(self):
         self.sess = get_session()
         # self.users_data = [
@@ -32,24 +36,26 @@ class User():
         # ]
 
     def get_user_by_id(self, user_id):
-        user = self.sess.query(User_db).filter(
-            User_db.id == user_id
+        """Get user by id function"""
+        user = self.sess.query(UserDb).filter(
+            UserDb.id == user_id
         ).first()
         return self.convert_class_user_to_object(user)
 
     def get_user_by_username(
-        self, name: str, skip: int = None, limit: int = None
+        self, name: str, skip: int = 0, limit: int = None
     ) -> Union[list, dict, str]:
+        """Get user by username function"""
         try:
-            if skip is None and type(limit) is int:
-                skip = 0
+            # if skip is None and type(limit) is int:
+            #     skip = 0
 
-            users_data = self.sess.query(User_db).filter(
-                User_db.username.like("%{}%".format(name.lower()))
+            users_data = self.sess.query(UserDb).filter(
+                UserDb.username.like(f"%{name.lower()}%")
             ).offset(skip).limit(limit).all()
 
             if not users_data:
-                return "User with name {} not found".format(name)
+                return f"User with name {name} not found"
 
             if len(users_data) == 1:
                 return self.convert_class_user_to_object(users_data[0])
@@ -58,31 +64,32 @@ class User():
                     self.convert_class_user_to_object(i)
                     for i in users_data
                 ]
-        except Exception as e:
-            print("Error in get_user_by_username: {}".format(e))
-            raise
+        except SQLAlchemyError as e:
+            raise SQLAlchemyError(f"Error getting user by username: {e}") from e
 
     def get_all_users_data(
         self,
         skip: Union[int, None],
         limit: Union[int, None]
     ) -> list:
+        """Get all users in list of dict"""
         if skip is not None and limit is not None:
-            users = self.sess.query(User_db).offset(skip).limit(limit).all()
+            users = self.sess.query(UserDb).offset(skip).limit(limit).all()
             return [
                 self.convert_class_user_to_object(i)
                 for i in users
             ]
         return [
             self.convert_class_user_to_object(i)
-            for i in self.sess.query(User_db).all()
+            for i in self.sess.query(UserDb).all()
         ]
 
     def check_if_user_exists(self, username: str, email: str):
-        user_existed = self.sess.query(User_db).filter(
+        """Check if user exists in database"""
+        user_existed = self.sess.query(UserDb).filter(
             or_(
-                User_db.username == username,
-                User_db.email == email
+                UserDb.username == username,
+                UserDb.email == email
             )
         ).first()
         if user_existed:
@@ -90,34 +97,36 @@ class User():
         return False
 
     def authenticate_user(self, username: str, password: str):
-        user = self.sess.query(User_db).filter(
+        """Authenticate user by username and password"""
+        user = self.sess.query(UserDb).filter(
             and_(
                 or_(
-                    User_db.username == username,
-                    User_db.email == username
+                    UserDb.username == username,
+                    UserDb.email == username
                 ),
-                User_db.hashed_password == password
+                UserDb.hashed_password == password
             )
         ).first()
         return self.convert_class_user_to_object(user)
 
     def insert_new_user(self, **kwargs: dict):
+        """Insert new user into database"""
         try:
-            new_user = User_db(**kwargs)
+            new_user = UserDb(**kwargs)
             self.sess.add(new_user)
             self.sess.commit()
             return self.convert_class_user_to_object(new_user)
-        except Exception as e:
+        except SQLAlchemyError as e:
             self.sess.rollback()
-            print("Error inserting new user: {}".format(e))
-            return False
+            raise SQLAlchemyError(f"Error inserting new user: {e}") from e
         finally:
             self.sess.close()
 
     def update_user_account(self, **kwargs):
+        """Update user account information"""
         try:
-            user = self.sess.query(User_db).filter(
-                User_db.id == kwargs['id']
+            user = self.sess.query(UserDb).filter(
+                UserDb.id == kwargs['id']
             ).first()
             if user:
                 for key, value in kwargs.items():
@@ -126,31 +135,32 @@ class User():
                 self.sess.commit()
                 return self.convert_class_user_to_object(user)
             return False
-        except Exception as e:
+        except SQLAlchemyError as e:
             self.sess.rollback()
-            print("Error updating user account: {}".format(e))
-            return False
+            raise SQLAlchemyError(f"Error updating user account: {e}") from e
         finally:
             self.sess.close()
 
     def delete_user(self, user_id: int) -> bool:
+        """Delete user Account permanently from database"""
         try:
-            user = self.sess.query(User_db).filter(
-                User_db.id == user_id
+            user = self.sess.query(UserDb).filter(
+                UserDb.id == user_id
             ).first()
             if user:
                 self.sess.delete(user)
                 self.sess.commit()
                 return True
             return False
-        except Exception as e:
+        except SQLAlchemyError as e:
             self.sess.rollback()
-            print("Error deleting user with id {}: {}".format(user_id, e))
+            raise SQLAlchemyError(f"Error deleting user with id ({user_id}): {e}") from e
         finally:
             self.sess.close()
-                
+
 
     def convert_class_user_to_object(self, user) -> dict:
+        """Convert a UserDb object to a User dict"""
         return {
             "id": user.id,
             "username": user.username,
