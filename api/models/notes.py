@@ -142,55 +142,55 @@ class Note():
         finally:
             self.sess.close()
 
-    def get_notes(
-        self,
-        field: str,
-        query: Union[str, None] = None,
-        note_id: Union[int, None] = None,
-        skip: Union[int, None] = 0,
-        limit: Union[int, None] = None
-    ) -> Union[dict, list, None]:
-        """Fetches notes based on the given field and query."""
-        try:
-            notes_data = None
+    # def get_notes(
+    #     self,
+    #     field: str,
+    #     query: Union[str, None] = None,
+    #     note_id: Union[int, None] = None,
+    #     skip: Union[int, None] = 0,
+    #     limit: Union[int, None] = None
+    # ) -> Union[dict, list, None]:
+    #     """Fetches notes based on the given field and query."""
+    #     try:
+    #         notes_data = None
 
-            if field == 'id' and note_id:
-                notes_data = self.sess.query(NoteDb).filter(
-                    NoteDb.id == query
-                ).first()
-            elif field == "list":
-                notes_data = self.sess.query(NoteDb)
-            elif field == "title":
-                notes_data = self.sess.query(NoteDb).filter(
-                    NoteDb.title.like(f'%{query}%')
-                )
-            elif field == "content":
-                notes_data = self.sess.query(NoteDb).filter(
-                    NoteDb.content.like(f'%{query}%')
-                )
+    #         if field == 'id' and note_id:
+    #             notes_data = self.sess.query(NoteDb).filter(
+    #                 NoteDb.id == query
+    #             ).first()
+    #         elif field == "list":
+    #             notes_data = self.sess.query(NoteDb)
+    #         elif field == "title":
+    #             notes_data = self.sess.query(NoteDb).filter(
+    #                 NoteDb.title.like(f'%{query}%')
+    #             )
+    #         elif field == "content":
+    #             notes_data = self.sess.query(NoteDb).filter(
+    #                 NoteDb.content.like(f'%{query}%')
+    #             )
 
-            if skip and limit:
-                notes_data = notes_data.offset(skip).limit(limit).all()
-            elif skip:
-                notes_data = notes_data.offset(skip).all()
+    #         if skip and limit:
+    #             notes_data = notes_data.offset(skip).limit(limit).all()
+    #         elif skip:
+    #             notes_data = notes_data.offset(skip).all()
 
-            if not notes_data:
-                print(f"No {field}s found with the given query: {query}")
-                return None
+    #         if not notes_data:
+    #             print(f"No {field}s found with the given query: {query}")
+    #             return None
 
-            if len(notes_data) == 1:
-                return self.convert_class_note_to_object(notes_data[0])
+    #         if len(notes_data) == 1:
+    #             return self.convert_class_note_to_object(notes_data[0])
 
-            return [
-                self.convert_class_note_to_object(note)
-                for note in notes_data
-            ]
-        except Exception as e:
-            raise SQLAlchemyError(
-                f"An error occurred while fetching notes by {field}: {e}"
-            ) from e
-        finally:
-            self.sess.close()
+    #         return [
+    #             self.convert_class_note_to_object(note)
+    #             for note in notes_data
+    #         ]
+    #     except Exception as e:
+    #         raise SQLAlchemyError(
+    #             f"An error occurred while fetching notes by {field}: {e}"
+    #         ) from e
+    #     finally:
+    #         self.sess.close()
 
     def create_a_new_note(
         self, user_id: int, content: str, title: Union[str, None] = None,
