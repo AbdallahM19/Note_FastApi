@@ -4,7 +4,9 @@ from typing import Union
 from fastapi import APIRouter
 from api.app import note_model
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/api',
+)
 
 
 @router.get("/notes/{field}")
