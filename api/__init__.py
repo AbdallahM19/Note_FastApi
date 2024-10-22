@@ -9,8 +9,8 @@ from api.database import create_database, create_tables, drop_db
 app = FastAPI()
 
 app.include_router(router)
-app.include_router(user_router, prefix='/api')
-app.include_router(note_router, prefix='/api')
+app.include_router(user_router)
+app.include_router(note_router)
 
 
 @app.on_event("startup")
