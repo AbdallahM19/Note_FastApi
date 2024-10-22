@@ -4,32 +4,34 @@ from typing import Union
 from fastapi import APIRouter, HTTPException
 from api.app import user_model
 
-router = APIRouter()
+router = APIRouter(
+    prefix='/api',
+)
 
 
-@router.get("/users")
-async def get_all_or_limit_users(
+@router.get("/users/{field}")
+async def get_user(
+    field: str,
+    user_id: Union[int, None] = None,
     skip: Union[int, None] = None,
     limit: Union[int, None] = None,
-    name: Union[str, None] = None
+    name: Union[str, None] = None,
 ) -> Union[str, dict, list]:
-    """Get all users or limit users by name"""
-    if name:
-        return user_model.get_user_by_username(name, skip, limit)
-    return user_model.get_all_users_data(skip, limit)
-
-
-@router.get("/users/me")
-async def get_current_user() -> dict:
-    """Get the Current user data"""
-    return {"user_id": "the current user"}
-
-
-@router.get("/users/{user_id}")
-async def get_user_by_id(user_id: int) -> dict:
-    """Get the user by id"""
-    return user_model.get_user_by_id(user_id)
-
+    """
+    Get user by id, or
+    get all users with optional filtering and pagination.
+    """
+    match field:
+        case "me":
+            return {
+                "user_id": "the current user"
+            }
+        case "id":
+            return user_model.get_user_by_id(user_id)
+        case "name":
+            return user_model.get_user_by_username(name, skip, limit)
+        case "list":
+            return user_model.get_all_users_data(skip, limit)
 
 @router.post("/users/register")
 async def register(
@@ -111,10 +113,3 @@ async def delete_user_account_completely(user_id: int) -> dict:
         "message": "User account could not be deleted",
         "status": 500
     }
-
-
-# @router.get("/user-name/")
-# async def get_user_by_name(
-#     name: str
-# ) -> Union[dict, str]:
-#     return user.user_by_name(name)
