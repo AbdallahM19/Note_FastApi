@@ -2,6 +2,7 @@
 
 from typing import Union
 from fastapi import APIRouter, HTTPException
+from api.models.users import UserAccount
 from api.app import user_model
 
 router = APIRouter(
@@ -32,6 +33,7 @@ async def get_user(
             return user_model.get_user_by_username(name, skip, limit)
         case "list":
             return user_model.get_all_users_data(skip, limit)
+
 
 @router.post("/users/register")
 async def register(
@@ -81,15 +83,12 @@ async def login(username: str, password: str):
 
 
 @router.put("/users/{user_id}/update")
-async def update_user_data(
-    user_id: int, username: Union[str, None] = None,
-    email: Union[str, None] = None, password: Union[str, None] = None,
-    date_of_birth: Union[str, None] = None, description: Union[str, None] = None
-):
+async def update_user_data(user_id: int, user_account: UserAccount):
     """Update user Account"""
     user_updated = user_model.update_user_account(
-        id=user_id, username=username, email=email, hashed_password=password,
-        date_of_birth=date_of_birth, description=description
+        id=user_id, username=user_account.username, email=user_account.email,
+        hashed_password=user_account.password, date_of_birth=user_account.date_of_birth,
+        description=user_account.description
     )
     return {
         "message": "User data updated successfully",
