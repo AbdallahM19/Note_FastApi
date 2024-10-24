@@ -7,6 +7,21 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.database import UserDb, get_session
 
 
+def convert_class_user_to_object(user: UserDb) -> dict:
+    """Convert a UserDb object to a User dict"""
+    return {
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "hashed_password": user.hashed_password,
+        "session_id": user.session_id,
+        "time_created": user.time_created,
+        "last_opened": user.last_opened,
+        "date_of_birth": user.date_of_birth,
+        "description": user.description,
+    }
+
+
 class UserAccount(BaseModel):
     """User account model."""
     username: str = None
@@ -40,19 +55,21 @@ class User():
 
     def get_user_by_id(self, user_id):
         """Get user by id function"""
-        user = self.sess.query(UserDb).filter(
-            UserDb.id == user_id
-        ).first()
-        return self.convert_class_user_to_object(user)
+        try:
+            user = self.sess.query(UserDb).filter(
+                UserDb.id == user_id
+            ).first()
+            return user
+        except SQLAlchemyError as e:
+            raise SQLAlchemyError(f"Error getting user by id: {str(e)}") from e
+        finally:
+            self.sess.close()
 
     def get_user_by_username(
         self, name: str, skip: int = 0, limit: int = None
     ) -> Union[list, dict, str]:
         """Get user by username function"""
         try:
-            # if skip is None and type(limit) is int:
-            #     skip = 0
-
             users_data = self.sess.query(UserDb).filter(
                 UserDb.username.like(f"%{name.lower()}%")
             ).offset(skip).limit(limit).all()
@@ -60,13 +77,7 @@ class User():
             if not users_data:
                 return f"User with name {name} not found"
 
-            if len(users_data) == 1:
-                return self.convert_class_user_to_object(users_data[0])
-            else:
-                return [
-                    self.convert_class_user_to_object(i)
-                    for i in users_data
-                ]
+            return users_data
         except SQLAlchemyError as e:
             raise SQLAlchemyError(f"Error getting user by username: {e}") from e
 
@@ -76,16 +87,12 @@ class User():
         limit: Union[int, None]
     ) -> list:
         """Get all users in list of dict"""
+        users = self.sess.query(UserDb)
+
         if skip is not None and limit is not None:
-            users = self.sess.query(UserDb).offset(skip).limit(limit).all()
-            return [
-                self.convert_class_user_to_object(i)
-                for i in users
-            ]
-        return [
-            self.convert_class_user_to_object(i)
-            for i in self.sess.query(UserDb).all()
-        ]
+            return users.offset(skip).limit(limit).all()
+
+        return users.all()
 
     def check_if_user_exists(self, username: str, email: str):
         """Check if user exists in database"""
@@ -110,7 +117,7 @@ class User():
                 UserDb.hashed_password == password
             )
         ).first()
-        return self.convert_class_user_to_object(user)
+        return user
 
     def insert_new_user(self, **kwargs: dict):
         """Insert new user into database"""
@@ -118,7 +125,7 @@ class User():
             new_user = UserDb(**kwargs)
             self.sess.add(new_user)
             self.sess.commit()
-            return self.convert_class_user_to_object(new_user)
+            return convert_class_user_to_object(new_user)
         except SQLAlchemyError as e:
             self.sess.rollback()
             raise SQLAlchemyError(f"Error inserting new user: {e}") from e
@@ -136,7 +143,7 @@ class User():
                     if key != 'id' and value is not None:
                         setattr(user, key, value)
                 self.sess.commit()
-                return self.convert_class_user_to_object(user)
+                return convert_class_user_to_object(user)
             return False
         except SQLAlchemyError as e:
             self.sess.rollback()
@@ -160,18 +167,3 @@ class User():
             raise SQLAlchemyError(f"Error deleting user with id ({user_id}): {e}") from e
         finally:
             self.sess.close()
-
-
-    def convert_class_user_to_object(self, user) -> dict:
-        """Convert a UserDb object to a User dict"""
-        return {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "hashed_password": user.hashed_password,
-            "session_id": user.session_id,
-            "time_created": user.time_created,
-            "last_opened": user.last_opened,
-            "date_of_birth": user.date_of_birth,
-            "description": user.description,
-        }
