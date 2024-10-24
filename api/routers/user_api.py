@@ -28,9 +28,7 @@ async def get_user(
 
     match field:
         case "me":
-            return {
-                "user_id": "the current user"
-            }
+            users_data = "the current user"
         case "id":
             users_data = user_model.get_user_by_id(user_id)
         case "name":
@@ -38,15 +36,15 @@ async def get_user(
         case "list":
             users_data = user_model.get_all_users_data(skip, limit)
 
-    if isinstance(users_data, UserDb):
+    if isinstance(users_data, str):
+        return {"message": users_data}
+    elif isinstance(users_data, UserDb):
         return convert_class_user_to_object(users_data)
-
-    if isinstance(users_data, list):
+    elif isinstance(users_data, list):
         return [
             convert_class_user_to_object(i)
             for i in users_data
         ]
-
     return "User not found"
 
 
