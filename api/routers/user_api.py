@@ -35,17 +35,19 @@ async def get_user(
             users_data = user_model.get_user_by_username(name, skip, limit)
         case "list":
             users_data = user_model.get_all_users_data(skip, limit)
+        case _:
+            users_data = "User not found"
 
-    if isinstance(users_data, str):
-        return {"message": users_data}
-    elif isinstance(users_data, UserDb):
+    if isinstance(users_data, UserDb):
         return convert_class_user_to_object(users_data)
-    elif isinstance(users_data, list):
+
+    if isinstance(users_data, list):
         return [
             convert_class_user_to_object(i)
             for i in users_data
         ]
-    return "User not found"
+
+    return {"message": users_data}
 
 
 @router.post("/users/register")
@@ -91,7 +93,7 @@ async def login(username: str, password: str):
         if existed_user:
             return {
                 "message": "User logged in successfully",
-                "user": convert_class_user_to_object(existed_user)
+                "user": existed_user
             }
         return {
             "status": 401,
