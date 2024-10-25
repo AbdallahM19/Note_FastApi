@@ -1,8 +1,8 @@
 """database.py"""
 
 from datetime import datetime
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import DeclarativeBase, sessionmaker
+# from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine, Column, Integer, String, Text, text, DateTime
 
 USERNAME = "root"
@@ -10,7 +10,10 @@ PASSWORD = "Abdallah%402004"
 HOST = "localhost"
 DATABASE = "note_db"
 
-Base = declarative_base()
+# Base = declarative_base()
+
+class Base(DeclarativeBase):
+    """Base class for all models"""
 
 
 class UserDb(Base):
