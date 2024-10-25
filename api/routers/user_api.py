@@ -16,9 +16,9 @@ router = APIRouter(
 async def get_user(
     field: Optional[str],
     user_id: Optional[int] = None,
+    name: Optional[str] = None,
     skip: Optional[int] = None,
     limit: Optional[int] = None,
-    name: Optional[str] = None,
 ) -> Union[str, dict, list]:
     """
     Get user by id, or
@@ -37,12 +37,17 @@ async def get_user(
         case "list":
             users_data = user_model.get_all_users_data(skip, limit)
         case _:
-            users_data = "User not found"
+            users_data = f"Invalid field: '{field}'."
+
+    if not users_data:
+        raise HTTPException(status_code=404, detail="User not found")
 
     if isinstance(users_data, UserDb):
         return convert_class_user_to_object(users_data)
 
     if isinstance(users_data, list):
+        if len(users_data) == 1:
+            return convert_class_user_to_object(users_data[0])
         return [
             convert_class_user_to_object(i)
             for i in users_data
