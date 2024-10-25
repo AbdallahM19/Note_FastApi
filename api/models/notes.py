@@ -1,6 +1,6 @@
 """notes.py"""
 
-from typing import Union
+from typing import Union, Optional
 from datetime import datetime
 # from sqlalchemy import and_, or_
 from sqlalchemy.exc import SQLAlchemyError
@@ -84,7 +84,7 @@ class Note():
         finally:
             self.sess.close()
 
-    def get_all_notes(self, skip: int = None, limit: int = None):
+    def get_all_notes(self, skip: Optional[int] = None, limit: Optional[int] = None):
         """Fetches all notes from the database."""
         try:
             notes = None
@@ -114,7 +114,7 @@ class Note():
         finally:
             self.sess.close()
 
-    def search_notes(self, field: str, query: str, skip: int = None, limit: int = None):
+    def search_notes(self, field: str, query: str, skip: Optional[int] = None, limit: Optional[int] = None):
         """Search notes based on field and query."""
         try:
             notes = None
@@ -128,6 +128,9 @@ class Note():
                 notes = self.sess.query(NoteDb).filter(
                     NoteDb.content.like(f'%{q}%')
                 )
+
+            if not notes:
+                return "No notes found"
 
             if skip is not None and limit is not None:
                 notes = notes.offset(skip).limit(limit).all()
