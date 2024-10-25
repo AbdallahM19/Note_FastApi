@@ -1,6 +1,6 @@
 """user_api.py"""
 
-from typing import Union
+from typing import Union, Optional
 from fastapi import APIRouter, HTTPException
 from api.models.users import UserAccount, convert_class_user_to_object
 from api.app import user_model
@@ -14,24 +14,25 @@ router = APIRouter(
 
 @router.get("/users/{field}")
 async def get_user(
-    field: str,
-    user_id: Union[int, None] = None,
-    skip: Union[int, None] = None,
-    limit: Union[int, None] = None,
-    name: Union[str, None] = None,
+    field: Optional[str],
+    user_id: Optional[int] = None,
+    skip: Optional[int] = None,
+    limit: Optional[int] = None,
+    name: Optional[str] = None,
 ) -> Union[str, dict, list]:
     """
     Get user by id, or
     get all users with optional filtering and pagination.
     """
-    users_data = None
+    users_data: Union[str, dict, list, None] = None
+    # users_data = None
 
     match field:
         case "me":
             users_data = "the current user"
-        case "id":
+        case "id" if user_id:
             users_data = user_model.get_user_by_id(user_id)
-        case "name":
+        case "name" if name:
             users_data = user_model.get_user_by_username(name, skip, limit)
         case "list":
             users_data = user_model.get_all_users_data(skip, limit)
@@ -53,8 +54,8 @@ async def get_user(
 @router.post("/users/register")
 async def register(
     username: str, email: str, password: str,
-    date_of_birth: Union[str, None] = None,
-    description: Union[str, None] = None
+    date_of_birth: Optional[str] = None,
+    description: Optional[str] = None
 ):
     """Register a new user"""
     try:
