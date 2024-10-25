@@ -1,6 +1,6 @@
 """note_api.py"""
 
-from typing import Union
+from typing import Union, Optional
 from fastapi import APIRouter
 from api.app import note_model
 
@@ -11,11 +11,11 @@ router = APIRouter(
 
 @router.get("/notes/{field}")
 async def get_notes_by_field(
-    field: Union[str, None],
-    query: Union[str, None] = None,
-    note_id: Union[int, None] = None,
-    skip: Union[int, None] = None,
-    limit: Union[int, None] = None,
+    field: Optional[str],
+    query: Optional[str] = None,
+    note_id: Optional[int] = None,
+    skip: Optional[int] = None,
+    limit: Optional[int] = None,
 ) -> Union[list, dict]:
     """Get notes by field"""
     # if field not in ['title', 'content', 'list', 'id']:
@@ -59,7 +59,7 @@ async def get_notes_by_field(
 
 @router.post("/notes/create")
 async def create_note(
-    user_id: int, content: str, title: Union[str, None] = None
+    user_id: int, content: str, title: Optional[str] = None
 ) -> dict:
     """Create a new note."""
     new_note = note_model.create_a_new_note(
@@ -75,7 +75,7 @@ async def create_note(
 async def update_note(
     note_id: int,
     content: str,
-    title: Union[str, None] = None
+    title: Optional[str] = None
 ) -> dict:
     """Update a note."""
     updated_note = note_model.update_note_data(
