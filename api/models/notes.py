@@ -18,6 +18,7 @@ def convert_class_note_to_object(note: NoteDb) -> dict:
         "time_edition": note.time_edition,
     }
 
+
 class Note():
     """Note Class"""
     def __init__(self):
