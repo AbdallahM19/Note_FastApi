@@ -87,16 +87,16 @@ class Note():
     def get_all_notes(self, skip: Optional[int] = None, limit: Optional[int] = None):
         """Fetches all notes from the database."""
         try:
-            notes = None
+            notes = self.sess.query(NoteDb)
 
             if skip is not None and limit is not None:
-                notes = self.sess.query(NoteDb).offset(skip).limit(limit).all()
+                notes = notes.offset(skip).limit(limit)
             elif skip is None and limit:
-                notes = self.sess.query(NoteDb).offset(0).limit(limit).all()
-            elif skip and limit is not None:
-                notes = self.sess.query(NoteDb).offset(skip).limit(10).all()
-            else:
-                notes = self.sess.query(NoteDb).all()
+                notes = notes.offset(0).limit(limit)
+            elif skip and limit is None:
+                notes = notes.offset(skip).limit(10)
+
+            notes = notes.all()
 
             if not notes:
                 return "No notes found"
