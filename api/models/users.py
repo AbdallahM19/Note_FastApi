@@ -80,6 +80,8 @@ class User():
             return users_data
         except SQLAlchemyError as e:
             raise SQLAlchemyError(f"Error getting user by username: {e}") from e
+        finally:
+            self.sess.close()
 
     def get_all_users_data(
         self,
@@ -96,28 +98,40 @@ class User():
 
     def check_if_user_exists(self, username: str, email: str):
         """Check if user exists in database"""
-        user_existed = self.sess.query(UserDb).filter(
-            or_(
-                UserDb.username == username,
-                UserDb.email == email
-            )
-        ).first()
-        if user_existed:
-            return user_existed
-        return False
+        try:
+            user_existed = self.sess.query(UserDb).filter(
+                or_(
+                    UserDb.username == username,
+                    UserDb.email == email
+                )
+            ).first()
+            if user_existed:
+                return user_existed
+            return None
+        except SQLAlchemyError as e:
+            raise SQLAlchemyError(f"Error checking user existence: {str(e)}") from e
+        finally:
+            self.sess.close()
 
     def authenticate_user(self, username: str, password: str):
         """Authenticate user by username and password"""
-        user = self.sess.query(UserDb).filter(
-            and_(
-                or_(
-                    UserDb.username == username,
-                    UserDb.email == username
-                ),
-                UserDb.hashed_password == password
-            )
-        ).first()
-        return user
+        try:
+            user = self.sess.query(UserDb).filter(
+                and_(
+                    or_(
+                        UserDb.username == username,
+                        UserDb.email == username
+                    ),
+                    UserDb.hashed_password == password
+                )
+            ).first()
+            if user:
+                return convert_class_user_to_object(user)
+            return None
+        except SQLAlchemyError as e:
+            raise SQLAlchemyError(f"Error authenticating user: {e}") from e
+        finally:
+            self.sess.close()
 
     def insert_new_user(self, **kwargs: dict):
         """Insert new user into database"""
