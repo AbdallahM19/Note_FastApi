@@ -1,6 +1,6 @@
 """users.py"""
 
-from typing import Union
+from typing import Union, Optional
 from pydantic import BaseModel
 from sqlalchemy import or_, and_
 from sqlalchemy.exc import SQLAlchemyError
@@ -24,11 +24,11 @@ def convert_class_user_to_object(user: UserDb) -> dict:
 
 class UserAccount(BaseModel):
     """User account model."""
-    username: str = None
-    email: str = None
-    password: str = None
-    date_of_birth: str = None
-    description: str = None
+    username: Optional[str] = None
+    email: Optional[str] = None
+    password: Optional[str] = None
+    date_of_birth: Optional[str] = None
+    description: Optional[str] = None
 
 
 class User():
@@ -66,7 +66,7 @@ class User():
             self.sess.close()
 
     def get_user_by_username(
-        self, name: str, skip: int = 0, limit: int = None
+        self, name: str, skip: Optional[int] = 0, limit: Optional[int] = None
     ) -> Union[list, dict, str]:
         """Get user by username function"""
         try:
@@ -89,12 +89,21 @@ class User():
         limit: Union[int, None]
     ) -> list:
         """Get all users in list of dict"""
-        users = self.sess.query(UserDb)
+        try:
+            users = self.sess.query(UserDb)
 
-        if skip is not None and limit is not None:
-            return users.offset(skip).limit(limit).all()
+            if skip is not None and limit is not None:
+                users = users.offset(skip).limit(limit)
+            elif skip and limit is None:
+                users = users.offset(skip).limit(10)
+            elif skip is None and limit:
+                users = users.offset(0).limit(limit)
 
-        return users.all()
+            return users.all()
+        except SQLAlchemyError as e:
+            raise SQLAlchemyError(f"Error getting all users: {str(e)}") from e
+        finally:
+            self.sess.close()
 
     def check_if_user_exists(self, username: str, email: str):
         """Check if user exists in database"""
