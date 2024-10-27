@@ -105,7 +105,7 @@ class User():
         finally:
             self.sess.close()
 
-    def check_if_user_exists(self, username: str, email: str):
+    def check_if_user_exists(self, username: str, email: str) -> UserDb:
         """Check if user exists in database"""
         try:
             user_existed = self.sess.query(UserDb).filter(
@@ -122,7 +122,7 @@ class User():
         finally:
             self.sess.close()
 
-    def authenticate_user(self, username: str, password: str):
+    def authenticate_user(self, username: str, password: str) -> dict:
         """Authenticate user by username and password"""
         try:
             user = self.sess.query(UserDb).filter(
