@@ -85,8 +85,8 @@ class User():
 
     def get_all_users_data(
         self,
-        skip: Union[int, None],
-        limit: Union[int, None]
+        skip: Optional[int],
+        limit: Optional[int]
     ) -> list:
         """Get all users in list of dict"""
         try:
@@ -155,7 +155,7 @@ class User():
         finally:
             self.sess.close()
 
-    def update_user_account(self, **kwargs):
+    def update_user_account(self, **kwargs: dict) -> dict:
         """Update user account information"""
         try:
             user = self.sess.query(UserDb).filter(
