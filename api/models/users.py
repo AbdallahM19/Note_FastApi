@@ -142,7 +142,7 @@ class User():
         finally:
             self.sess.close()
 
-    def insert_new_user(self, **kwargs: dict):
+    def insert_new_user(self, **kwargs: dict) -> dict:
         """Insert new user into database"""
         try:
             new_user = UserDb(**kwargs)
