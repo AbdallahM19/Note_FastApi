@@ -114,18 +114,23 @@ async def register(
 @router.post("/users/login")
 async def login(username: str, password: str) -> dict:
     """Login a user"""
-
     try:
         existed_user = user_model.check_if_user_exists(username=username, email=username)
 
         if existed_user:
+            if existed_user.hashed_password == password:
+                return {
+                    "status": 200,
+                    "message": "User logged in successfully",
+                    "user": existed_user
+                }
             return {
-                "message": "User logged in successfully",
-                "user": existed_user
+                "status": 401,
+                "message": "Invalid password. password not correct",
             }
         return {
             "status": 401,
-            "message": "Invalid username or password"
+            "message": "Invalid username. user not exists",
         }
     except Exception as e:
         raise HTTPException(
