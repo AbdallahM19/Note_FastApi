@@ -122,7 +122,7 @@ class User():
         finally:
             self.sess.close()
 
-    def authenticate_user(self, username: str, password: str) -> dict:
+    def authenticate_user(self, username: str, password: str) -> Union[dict, str]:
         """Authenticate user by username and password"""
         try:
             user = self.sess.query(UserDb).filter(
@@ -130,13 +130,15 @@ class User():
                     or_(
                         UserDb.username == username,
                         UserDb.email == username
-                    ),
-                    UserDb.hashed_password == password
+                    )
+                    # UserDb.hashed_password == password
                 )
             ).first()
             if user:
-                return convert_class_user_to_object(user)
-            return None
+                if user.hashed_password == password:
+                    return convert_class_user_to_object(user)
+                return "Invalid password. password not correct"
+            return "Invalid username. user not exists"
         except SQLAlchemyError as e:
             raise SQLAlchemyError(f"Error authenticating user: {e}") from e
         finally:
