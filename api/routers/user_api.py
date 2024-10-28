@@ -59,9 +59,8 @@ async def get_user(
 @router.post("/users/register")
 async def register(
     username: str, email: str, password: str,
-    date_of_birth: Optional[str] = None,
-    description: Optional[str] = None
-):
+    date_of_birth: Optional[str] = None, description: Optional[str] = None
+) -> dict:
     """Register a new user"""
     try:
         existing_user = user_model.check_if_user_exists(username, email)
@@ -90,7 +89,7 @@ async def register(
 
 
 @router.post("/users/login")
-async def login(username: str, password: str):
+async def login(username: str, password: str) -> dict:
     """Login a user"""
 
     try:
@@ -113,7 +112,7 @@ async def login(username: str, password: str):
 
 
 @router.put("/users/{user_id}/update")
-async def update_user_data(user_id: int, user_account: UserAccount):
+async def update_user_data(user_id: int, user_account: UserAccount) -> dict:
     """Update user Account"""
     user_updated = user_model.update_user_account(
         id=user_id, username=user_account.username, email=user_account.email,
