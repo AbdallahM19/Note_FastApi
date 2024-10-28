@@ -116,7 +116,7 @@ async def login(username: str, password: str) -> dict:
     """Login a user"""
 
     try:
-        existed_user = user_model.authenticate_user(username, password)
+        existed_user = user_model.check_if_user_exists(username=username, email=username)
 
         if existed_user:
             return {
