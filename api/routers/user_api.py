@@ -88,6 +88,29 @@ async def register(
         ) from e
 
 
+# @router.post("/users/login")
+# async def login(username: str, password: str) -> dict:
+#     """Login a user"""
+#     try:
+#         existed_user = user_model.authenticate_user(username, password)
+
+#         if isinstance(existed_user, dict):
+#             return {
+#                 "status": 200,
+#                 "message": "User logged in successfully",
+#                 "user": existed_user
+#             }
+#         return {
+#             "status": 401,
+#             "message": existed_user,
+#         }
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=500,
+#             detail=f"An error occurred while logging the user: {str(e)}"
+#         ) from e
+
+
 @router.post("/users/login")
 async def login(username: str, password: str) -> dict:
     """Login a user"""
