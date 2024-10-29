@@ -122,6 +122,7 @@ class User():
         finally:
             self.sess.close()
 
+    # authenticate_user Not Used ⬇
     def authenticate_user(self, username: str, password: str) -> Union[dict, str]:
         """Authenticate user by username and password"""
         try:
