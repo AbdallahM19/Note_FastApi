@@ -1,6 +1,6 @@
 """user_api.py"""
 
-from typing import Union, Optional
+from typing import Union, Optional, Annotated
 from fastapi import APIRouter, HTTPException, Query
 from api.models.users import UserAccount, convert_class_user_to_object
 from api.app import user_model
@@ -60,7 +60,7 @@ async def get_user(
 async def register(
     username: str, email: str, password: str,
     date_of_birth: Optional[str] = None,
-    description: Optional[str] = Query(default=None, max_length=500)
+    description: Annotated[Optional[str], Query(max_length=500)] = None
 ) -> dict:
     """Register a new user"""
     try:
