@@ -1,7 +1,7 @@
 """user_api.py"""
 
 from typing import Union, Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from api.models.users import UserAccount, convert_class_user_to_object
 from api.app import user_model
 from api.database import UserDb
@@ -59,7 +59,8 @@ async def get_user(
 @router.post("/users/register")
 async def register(
     username: str, email: str, password: str,
-    date_of_birth: Optional[str] = None, description: Optional[str] = None
+    date_of_birth: Optional[str] = None,
+    description: Optional[str] = Query(default=None, max_length=500)
 ) -> dict:
     """Register a new user"""
     try:
