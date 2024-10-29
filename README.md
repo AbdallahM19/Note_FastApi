@@ -6,18 +6,18 @@ This FastAPI project provides endpoints for handling user accounts, including re
 
 ## API Documentation
 
-### General Routes
+### [General Routes](#route-definitions)
 - [Root Route](#root-route): Go to `/`
 - [Home Route](#home-route): Go to `/home`
 
-### User Routes
+### [User Routes](#user-routes-1)
 - [Get User](#get-user-route): Retrieve User Data
 - [User Registration](#register-user-route): Register User
 - [User Login](#login-user-route): Login User
 - [Update User](#update-user-route): Update User Details
 - [Delete User](#delete-user-route): Delete User
 
-### Note Routes
+### [Note Routes](#note-routes-1)
 - [Get Notes](#get-notes-by-field): Retrieve Notes
 - [Note Creation](#create-note): Create Note
 - [Note Update](#update-note): Update Note
