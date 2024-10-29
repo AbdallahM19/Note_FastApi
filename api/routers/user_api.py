@@ -58,7 +58,7 @@ async def get_user(
 
 @router.post("/users/register")
 async def register(
-    username: Annotated[str, Query(min_length=6, max_length=50)],
+    username: Annotated[str, Query(min_length=3, max_length=50)],
     email: str, password: str, date_of_birth: Optional[str] = None,
     description: Annotated[Optional[str], Query(max_length=500)] = None
 ) -> dict:
@@ -115,9 +115,9 @@ async def register(
 @router.post("/users/login")
 async def login(
     password: str,
-    username: Annotated[Optional[str], Query(min_length=6, max_length=50)] = None,
+    username: Annotated[Optional[str], Query(min_length=3, max_length=50)] = None,
     email: Annotated[Optional[str], Query(
-        max_digits=100,
+        max_length=100,
         pattern=r"^([a-z]+)((([a-z]+)|(_[a-z]+))?(([0-9]+)|(_[0-9]+))?)*@([a-z]+).([a-z]+)$"
     )] = None,
 ) -> dict:
