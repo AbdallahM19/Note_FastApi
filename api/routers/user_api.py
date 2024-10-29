@@ -130,7 +130,7 @@ async def login(
                 return {
                     "status": 200,
                     "message": "User logged in successfully",
-                    "user": existed_user
+                    "user": convert_class_user_to_object(existed_user)
                 }
             return {
                 "status": 401,

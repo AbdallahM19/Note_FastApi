@@ -105,7 +105,7 @@ class User():
         finally:
             self.sess.close()
 
-    def check_if_user_exists(self, username: str, email: str) -> UserDb:
+    def check_if_user_exists(self, username: str, email: str) -> Optional[UserDb]:
         """Check if user exists in database"""
         try:
             user_existed = self.sess.query(UserDb).filter(
