@@ -23,7 +23,7 @@ This FastAPI project provides endpoints for handling user accounts, including re
 - [Note Update](#update-note): Update Note
 - [Delete Note](#delete-note): Delete Note
 
-### [Summary Table](#summary-table)
+### [Summary Table](#summary-table-1)
 
 ---
 
