@@ -16,7 +16,7 @@ async def root():
 - **Path**: `/`
 - **Description**: This is the root endpoint, used to confirm the API is active and running.
 - **Response**: Returns a JSON object with a `message` key saying `"Hello World"`.
-- **File**: `/api/app.py`
+- **File**: [`/api/app.py`](./api/app.py)
 
 ### Home Route
 ```python
@@ -28,7 +28,7 @@ async def home():
 - **Path**: `/home`
 - **Description**: A simple route that provides a welcome message.
 - **Response**: Returns a JSON object with a `message` key saying `"Welcome in Home"`.
-- **File**: `/api/app.py`
+- **File**: [`/api/app.py`](./api/app.py)
 
 ---
 
@@ -53,7 +53,7 @@ async def get_user(
   - `"name"`: Retrieves user by `name` with optional pagination using `skip` and `limit`.
   - `"list"`: Retrieves all users with optional pagination.
 - **Responses**: Returns JSON with user information or an error if not found.
-- **File**: `/api/user_api.py`
+- **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
 
 ### Register User Route
 ```python
@@ -68,7 +68,7 @@ async def register(
 - **Path**: `/api/users/register`
 - **Description**: Registers a new user with a unique `username` and `email`. Optional fields include `date_of_birth` and a `description` with a 500-character limit.
 - **Response**: Success response with the newly created user data or an error if the user already exists.
-- **File**: `/api/user_api.py`
+- **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
 
 ### Login User Route
 ```python
@@ -83,7 +83,7 @@ async def login(
 - **Path**: `/api/users/login`
 - **Description**: Authenticates a user by either `username` or `email` combined with a `password`. If successful, returns the user data.
 - **Response**: Returns JSON indicating login success with user data or error messages for invalid credentials.
-- **File**: `/api/user_api.py`
+- **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
 
 ### Update User Route
 ```python
@@ -94,7 +94,7 @@ async def update_user_data(user_id: int, user_account: UserAccount) -> dict:
 - **Path**: `/api/users/{user_id}/update`
 - **Description**: Updates user information for the user with `user_id`. The update requires a `UserAccount` object containing fields like `username`, `email`, `password`, etc.
 - **Response**: Returns JSON with a success message and updated data, or an error if the update fails.
-- **File**: `/api/user_api.py`
+- **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
 
 ### Delete User Route
 ```python
@@ -105,7 +105,7 @@ async def delete_user_account_completely(user_id: int) -> dict:
 - **Path**: `/api/users/{user_id}/delete`
 - **Description**: Deletes a user account permanently based on the provided `user_id`.
 - **Response**: Success message indicating account deletion, or error if deletion fails.
-- **File**: `/api/user_api.py`
+- **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
 
 ---
 
@@ -133,6 +133,7 @@ async def get_notes_by_field(
   - **skip** and **limit**: (Optional) Used for pagination.
 - **Description**: This route fetches notes based on the specified field. It handles different fields with a `match` statement for specific cases like `id`, `title`, `content`, or listing all notes.
 - **Response**: Returns a list of notes or an error message if an invalid field or query is provided.
+- **File**: [`/api/routers/note_api.py`](./api/routers/note_api.py)
 
 ### Create Note
 
@@ -151,6 +152,7 @@ async def create_note(
   - **title**: (Optional) The title of the note.
 - **Description**: Creates a new note associated with a user.
 - **Response**: Returns a success message with the newly created note.
+- **File**: [`/api/routers/note_api.py`](./api/routers/note_api.py)
 
 ### Update Note
 
@@ -171,6 +173,7 @@ async def update_note(
   - **title**: (Optional) New title for the note.
 - **Description**: Updates an existing note by its ID.
 - **Response**: Returns the updated note details.
+- **File**: [`/api/routers/note_api.py`](./api/routers/note_api.py)
 
 ### Delete Note
 
@@ -185,6 +188,7 @@ async def delete_note_data_permanently(note_id: int) -> dict:
   - **note_id**: The ID of the note to delete.
 - **Description**: Permanently deletes a note by ID.
 - **Response**: Returns a success message with the deleted note's ID.
+- **File**: [`/api/routers/note_api.py`](./api/routers/note_api.py)
 
 ---
 
