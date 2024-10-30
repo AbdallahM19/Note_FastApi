@@ -1,7 +1,7 @@
 """note_api.py"""
 
-from typing import Union, Optional
-from fastapi import APIRouter
+from typing import Union, Optional, Annotated
+from fastapi import APIRouter, Path
 from api.app import note_model
 
 router = APIRouter(
@@ -73,7 +73,12 @@ async def create_note(
 
 @router.put("/notes/{note_id}/update")
 async def update_note(
-    note_id: int,
+    note_id: Annotated[
+        int, Path(
+            title="The ID of the note to be updated",
+            description="The ID of the note to be updated"
+        )
+    ],
     content: str,
     title: Optional[str] = None
 ) -> dict:
@@ -85,7 +90,14 @@ async def update_note(
 
 
 @router.delete("/notes/{note_id}/delete")
-async def delete_note_data_permanently(note_id: int) -> dict:
+async def delete_note_data_permanently(
+    note_id: Annotated[
+        int, Path(
+            title="The ID of the note to be deleted",
+            description="The ID of the note to be deleted"
+        )
+    ]
+) -> dict:
     """Delete note data permanently."""
     note_model.delete_note_by_id(note_id)
     return {"message": f"Note with id {note_id} has been deleted permanently."}
