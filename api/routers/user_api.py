@@ -1,7 +1,7 @@
 """user_api.py"""
 
 from typing import Union, Optional, Annotated
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Path
 from api.models.users import UserAccount, convert_class_user_to_object
 from api.app import user_model
 from api.database import UserDb
@@ -148,7 +148,10 @@ async def login(
 
 
 @router.put("/users/{user_id}/update")
-async def update_user_data(user_id: int, user_account: UserAccount) -> dict:
+async def update_user_data(
+    user_id: Annotated[int, Path(title="The ID of the user to update.")],
+    user_account: UserAccount
+) -> dict:
     """Update user Account"""
     user_updated = user_model.update_user_account(
         id=user_id, username=user_account.username, email=user_account.email,
@@ -167,7 +170,9 @@ async def update_user_data(user_id: int, user_account: UserAccount) -> dict:
 
 
 @router.delete("/users/{user_id}/delete")
-async def delete_user_account_completely(user_id: int) -> dict:
+async def delete_user_account_completely(
+    user_id: Annotated[int, Path(title="The ID of the user to delete.")]
+) -> dict:
     """Delete user Account permanently"""
     if user_model.delete_user(user_id):
         return {
