@@ -149,7 +149,13 @@ async def login(
 
 @router.put("/users/{user_id}/update")
 async def update_user_data(
-    user_id: Annotated[int, Path(title="The ID of the user to update.")],
+    user_id: Annotated[
+        int, Path(
+            title="The ID of the user to update.",
+            description="The ID of the user to update.",
+            gt=0
+        )
+    ],
     user_account: UserAccount
 ) -> dict:
     """Update user Account"""
@@ -171,7 +177,13 @@ async def update_user_data(
 
 @router.delete("/users/{user_id}/delete")
 async def delete_user_account_completely(
-    user_id: Annotated[int, Path(title="The ID of the user to delete.")]
+    user_id: Annotated[
+        int, Path(
+            title="The ID of the user to delete.",
+            description="This will delete the user account completely.",
+            gt=0
+        )
+    ]
 ) -> dict:
     """Delete user Account permanently"""
     if user_model.delete_user(user_id):

@@ -76,7 +76,8 @@ async def update_note(
     note_id: Annotated[
         int, Path(
             title="The ID of the note to be updated",
-            description="The ID of the note to be updated"
+            description="The ID of the note to be updated",
+            gt=0
         )
     ],
     content: str,
@@ -94,7 +95,8 @@ async def delete_note_data_permanently(
     note_id: Annotated[
         int, Path(
             title="The ID of the note to be deleted",
-            description="The ID of the note to be deleted"
+            description="The ID of the note to be deleted",
+            gt=0
         )
     ]
 ) -> dict:
