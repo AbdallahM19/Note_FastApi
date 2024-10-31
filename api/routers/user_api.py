@@ -204,3 +204,9 @@ async def delete_user_account_completely(
         "message": "User account could not be deleted",
         "status": 500
     }
+
+@router.post("/users/logout")
+async def logout_user(request: Request) -> dict:
+    """Logout user"""
+    clear_session(request)
+    return {"message": "User logged out successfully", "status": 200}
