@@ -76,13 +76,15 @@ async def register(
                 "status": 400
             }
 
-        user = user_model.insert_new_user(
+        current_user = user_model.insert_new_user(
             username=username, email=email, hashed_password=password,
             date_of_birth=date_of_birth, description=description
         )
 
+        set_session(request, **current_user)
+
         return {
-            "message": "User created successfully", "user": user
+            "message": "User created successfully", "user": current_user
         }
     except Exception as e:
         raise HTTPException(
