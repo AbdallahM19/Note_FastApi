@@ -31,7 +31,7 @@ async def get_user(
 
     match field:
         case "me":
-            users_data = "the current user"
+            users_data = get_session(request)
         case "id" if user_id:
             users_data = user_model.get_user_by_id(user_id)
         case "name" if name:
