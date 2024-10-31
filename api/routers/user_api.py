@@ -15,6 +15,7 @@ router = APIRouter(
 
 @router.get("/users/{field}")
 async def get_user(
+    request: Request,
     field: Optional[str],
     user_id: Optional[int] = None,
     name: Optional[str] = None,
@@ -59,7 +60,7 @@ async def get_user(
 
 @router.post("/users/register")
 async def register(
-    username: Annotated[str, Query(min_length=3, max_length=50)],
+    request: Request, username: Annotated[str, Query(min_length=3, max_length=50)],
     email: str, password: str, date_of_birth: Optional[str] = None,
     description: Annotated[Optional[str], Query(max_length=500)] = None
 ) -> dict:
@@ -115,6 +116,7 @@ async def register(
 
 @router.post("/users/login")
 async def login(
+    request: Request,
     password: str,
     username: Annotated[Optional[str], Query(min_length=3, max_length=50)] = None,
     email: Annotated[Optional[str], Query(
