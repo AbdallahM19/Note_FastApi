@@ -126,16 +126,20 @@ async def login(
         pattern=r"^([a-z]+)((([a-z]+)|(_[a-z]+))?(([0-9]+)|(_[0-9]+))?)*@([a-z]+).([a-z]+)$"
     )] = None,
 ) -> dict:
-    """Login a user"""
+    """Login a user and set session data."""
     try:
         existed_user = user_model.check_if_user_exists(username=username, email=email)
 
         if existed_user:
             if existed_user.hashed_password == password:
+                current_user = convert_class_user_to_object(existed_user)
+
+                set_session(request, **current_user)
+
                 return {
                     "status": 200,
                     "message": "User logged in successfully",
-                    "user": convert_class_user_to_object(existed_user)
+                    "user": current_user
                 }
             return {
                 "status": 401,
