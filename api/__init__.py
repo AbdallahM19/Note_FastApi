@@ -1,12 +1,16 @@
 """__init__.py"""
 
 from fastapi import FastAPI, Request
+from starlette.middleware.sessions import SessionMiddleware
 from api.app import router
 from api.routers.user_api import router as user_router
 from api.routers.note_api import router as note_router
 from api.database import create_database, create_tables, drop_db
 
 app = FastAPI()
+
+# Session middleware configuration
+app.add_middleware(SessionMiddleware, secret_key="mysecretkey2024")
 
 app.include_router(router)
 app.include_router(user_router)
