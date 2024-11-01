@@ -65,6 +65,18 @@ class User():
         finally:
             self.sess.close()
 
+    def get_user_by_session_id(self, session_id):
+        """Get user by session id function"""
+        try:
+            user = self.sess.query(UserDb).filter(
+                UserDb.session_id == session_id
+            ).first()
+            return user
+        except SQLAlchemyError as e:
+            raise SQLAlchemyError(f"Error getting user by session id: {str(e)}") from e
+        finally:
+            self.sess.close()
+
     def get_user_by_username(
         self, name: str, skip: Optional[int] = 0, limit: Optional[int] = None
     ) -> Union[list, dict, str]:
