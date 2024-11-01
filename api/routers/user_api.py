@@ -1,11 +1,12 @@
 """user_api.py"""
 
-from fastapi import APIRouter, HTTPException, Query, Path, Request
 from typing import Union, Optional, Annotated  #, List
+from uuid import uuid4
+from fastapi import APIRouter, HTTPException, Query, Path, Depends
 from api.app import user_model
 from api.database import UserDb
 from api.models.users import UserAccount, convert_class_user_to_object
-from api.utils.session import get_session, set_session, clear_session
+from api.utils.session import SessionManager, get_session_manager
 
 
 router = APIRouter(
