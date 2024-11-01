@@ -16,12 +16,12 @@ router = APIRouter(
 
 @router.get("/users/{field}")
 async def get_user(
-    request: Request,
     field: Optional[str],
     user_id: Optional[int] = None,
     name: Optional[str] = None,
     skip: Optional[int] = None,
     limit: Optional[int] = None,
+    session: SessionManager = Depends(get_session_manager)
 ) -> Union[str, dict, list]:
     """
     Get user by id, or
@@ -61,9 +61,10 @@ async def get_user(
 
 @router.post("/users/register")
 async def register(
-    request: Request, username: Annotated[str, Query(min_length=3, max_length=50)],
+    username: Annotated[str, Query(min_length=3, max_length=50)],
     email: str, password: str, date_of_birth: Optional[str] = None,
-    description: Annotated[Optional[str], Query(max_length=500)] = None
+    description: Annotated[Optional[str], Query(max_length=500)] = None,
+    session: SessionManager = Depends(get_session_manager)
 ) -> dict:
     """Register a new user"""
     try:
@@ -119,13 +120,13 @@ async def register(
 
 @router.post("/users/login")
 async def login(
-    request: Request,
     password: str,
     username: Annotated[Optional[str], Query(min_length=3, max_length=50)] = None,
     email: Annotated[Optional[str], Query(
         max_length=100,
         pattern=r"^([a-z]+)((([a-z]+)|(_[a-z]+))?(([0-9]+)|(_[0-9]+))?)*@([a-z]+).([a-z]+)$"
     )] = None,
+    session: SessionManager = Depends(get_session_manager)
 ) -> dict:
     """Login a user and set session data."""
     try:
@@ -193,7 +194,8 @@ async def delete_user_account_completely(
             description="This will delete the user account completely.",
             gt=0
         )
-    ]
+    ],
+    session: SessionManager = Depends(get_session_manager)
 ) -> dict:
     """Delete user Account permanently"""
     if user_model.delete_user(user_id):
@@ -207,7 +209,7 @@ async def delete_user_account_completely(
     }
 
 @router.post("/users/logout")
-async def logout_user(request: Request) -> dict:
+async def logout_user(session: SessionManager = Depends(get_session_manager)) -> dict:
     """Logout user"""
     clear_session(request)
     return {"message": "User logged out successfully", "status": 200}
