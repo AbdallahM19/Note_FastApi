@@ -31,3 +31,10 @@ async def before_close_app():
     print("Closing app")
     # drop_db()
     print("Application shutdown complete")
+
+
+# def logger(func):
+#     """logger function"""
+#     def wrapper(*args, **kwargs):
+#         """wrapper for load data the current user"""
+#     return wrapper(func)
