@@ -114,7 +114,10 @@ class Note():
         finally:
             self.sess.close()
 
-    def search_notes(self, field: str, query: str, skip: Optional[int] = None, limit: Optional[int] = None):
+    def search_notes(
+        self, field: str, query: str,
+        skip: Optional[int] = None, limit: Optional[int] = None
+    ):
         """Search notes based on field and query."""
         try:
             notes = None
