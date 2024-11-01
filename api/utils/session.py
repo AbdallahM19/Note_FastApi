@@ -3,14 +3,23 @@
 from fastapi import Request
 
 
-def get_session(request: Request) -> dict:
-    """Get the session from the request."""
-    return request.session
+class SessionManager:
+    """Session manager for FastAPI."""
+    def __init__(self, request: Request):
+        self.request = request
 
-def set_session(request: Request, **kwargs):
-    """Set the session from the request."""
-    request.session.update(**kwargs)
+    def get_session_id(self) -> str:
+        """Get session id from session object."""
+        return self.request.session.get("session_id")
 
-def clear_session(request: Request):
-    """Clear the session data."""
-    request.session.clear()
+    def set_session_id(self, session_id: str):
+        """Set session id in session object."""
+        self.request.session["session_id"] = session_id
+
+    def clear_session(self):
+        """Clear session object."""
+        self.request.session.clear()
+
+def get_session_manager(request: Request) -> SessionManager:
+    """Get session manager instance from request."""
+    return SessionManager(request)
