@@ -32,7 +32,7 @@ async def get_user(
 
     match field:
         case "me":
-            users_data = get_session(request)
+            users_data = user_model.get_user_by_session_id(session.get_session_id())
         case "id" if user_id:
             users_data = user_model.get_user_by_id(user_id)
         case "name" if name:
@@ -78,16 +78,17 @@ async def register(
                 "status": 400
             }
 
+        session_id = str(uuid4())
+
         current_user = user_model.insert_new_user(
             username=username, email=email, hashed_password=password,
-            date_of_birth=date_of_birth, description=description
+            date_of_birth=date_of_birth, description=description,
+            session_id=session_id
         )
 
-        set_session(request, **current_user)
+        session.set_session_id(session_id)
 
-        return {
-            "message": "User created successfully", "user": current_user
-        }
+        return {"message": "User created successfully", "user": current_user}
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -136,7 +137,7 @@ async def login(
             if existed_user.hashed_password == password:
                 current_user = convert_class_user_to_object(existed_user)
 
-                set_session(request, **current_user)
+                session.set_session_id(current_user["session_id"])
 
                 return {
                     "status": 200,
@@ -199,6 +200,8 @@ async def delete_user_account_completely(
 ) -> dict:
     """Delete user Account permanently"""
     if user_model.delete_user(user_id):
+        session.clear_session()
+
         return {
             "message": "User account has been deleted successfully",
             "status": 200
@@ -211,5 +214,5 @@ async def delete_user_account_completely(
 @router.post("/users/logout")
 async def logout_user(session: SessionManager = Depends(get_session_manager)) -> dict:
     """Logout user"""
-    clear_session(request)
+    session.clear_session()
     return {"message": "User logged out successfully", "status": 200}
