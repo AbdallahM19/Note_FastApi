@@ -130,6 +130,17 @@ async def delete_user_account_completely(user_id: int) -> dict:
 - **Response**: Success message indicating account deletion, or error if deletion fails.
 - **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
 
+### Logout User Route
+```python
+@router.post("/users/logout")
+async def logout_user(session: SessionManager = Depends(get_session_manager)) -> dict:
+    """Logout user"""
+```
+- **Path**: `/api/users/logout`
+- **Description**: Logs out the current user by invalidating and clear their session.
+- **Response**: Returns JSON indicating logout success with message User logged out successfully.
+- **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
+
 ---
 
 ## Note Routes
