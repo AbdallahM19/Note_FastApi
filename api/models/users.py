@@ -173,12 +173,21 @@ class User():
     def update_user_account(self, **kwargs: dict) -> dict:
         """Update user account information"""
         try:
-            user = self.sess.query(UserDb).filter(
-                UserDb.id == kwargs['id']
-            ).first()
+            user = None
+
+            if kwargs['session_id']:
+                user = self.sess.query(UserDb).filter(
+                    UserDb.session_id == kwargs['session_id']
+                ).first()
+
+            if kwargs['id']:
+                user = self.sess.query(UserDb).filter(
+                    UserDb.id == kwargs['id']
+                ).first()
+
             if user:
                 for key, value in kwargs.items():
-                    if key != 'id' and value is not None:
+                    if key not in ['id', 'session_id'] and value is not None:
                         setattr(user, key, value)
                 self.sess.commit()
                 return convert_class_user_to_object(user)
