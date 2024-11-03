@@ -162,29 +162,44 @@ async def login(
 @router.put("/users/{user_id}/update")
 async def update_user_data(
     user_id: Annotated[
-        int, Path(
-            title="The ID of the user to update.",
-            description="The ID of the user to update.",
+        Union[int, str], Path(
+            title= "Update user by id or 'me'",
+            description= "Update user data by id or 'me' to update current user data",
             gt=0
         )
     ],
-    user_account: UserAccount
+    user_account: UserAccount,
+    session: SessionManager = Depends(get_session_manager)
 ) -> dict:
     """Update user Account"""
-    user_updated = user_model.update_user_account(
-        id=user_id, username=user_account.username, email=user_account.email,
-        hashed_password=user_account.password, date_of_birth=user_account.date_of_birth,
-        description=user_account.description
-    )
+    try:
+        user_updated = None
 
-    return {
-        "message": "User data updated successfully",
-        "user_data": user_updated,
-        "status": 200
-    } if user_updated else {
-        "error": "User data update failed",
-        "status": 500
-    }
+        if isinstance(user_id, str) and user_id == 'me':
+            user_updated = user_model.update_user_account(
+                session_id=session.get_session_id(), **user_account
+            )
+        if isinstance(user_id, int):
+            user_updated = user_model.update_user_account(
+                id=user_id, **user_account
+            )
+
+        if user_updated:
+            return {
+                "message": "User data updated successfully",
+                "user_data": user_updated,
+                "status": 200
+            }
+        return {
+            "error": "User data update failed",
+            "search": user_id,
+            "status": 400,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"An error occurred while updating the user: {str(e)}"
+        ) from e
 
 
 @router.delete("/users/{user_id}/delete")
