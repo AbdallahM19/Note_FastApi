@@ -111,11 +111,11 @@ async def login(
 ### Update User Route
 ```python
 @router.put("/users/{user_id}/update")
-async def update_user_data(user_id: int, user_account: UserAccount) -> dict:
+async def update_user_data(user_id: Union[int, str], user_account: UserAccount) -> dict:
     """Update user Account"""
 ```
 - **Path**: `/api/users/{user_id}/update`
-- **Description**: Updates user information for the user with `user_id`. The update requires a `UserAccount` object containing fields like `username`, `email`, `password`, etc.
+- **Description**: Update by user_id or 'me', that mean the current user.
 - **Response**: Returns JSON with a success message and updated data, or an error if the update fails.
 - **File**: [`/api/routers/user_api.py`](./api/routers/user_api.py)
 
