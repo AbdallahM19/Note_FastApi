@@ -26,7 +26,7 @@ class UserAccount(BaseModel):
     """User account model."""
     username: Optional[str] = None
     email: Optional[str] = None
-    password: Optional[str] = None
+    hashed_password: Optional[str] = None
     date_of_birth: Optional[str] = None
     description: Optional[str] = None
 
