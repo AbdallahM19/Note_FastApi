@@ -3,6 +3,7 @@
 from typing import Union, Optional
 from datetime import datetime
 # from sqlalchemy import and_, or_
+from pydantic import BaseModel
 from sqlalchemy.exc import SQLAlchemyError
 from api.database import NoteDb, get_session
 
@@ -17,6 +18,15 @@ def convert_class_note_to_object(note: NoteDb) -> dict:
         "time_created": note.time_created,
         "time_edition": note.time_edition,
     }
+
+
+class NoteData(BaseModel):
+    """Class to handle Note data operations"""
+    user_id: Optional[int] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
+    time_created: Optional[str] = None
+    time_edition: Optional[str] = None
 
 
 class Note():
