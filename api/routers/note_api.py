@@ -1,8 +1,10 @@
 """note_api.py"""
 
 from typing import Union, Optional, Annotated
-from fastapi import APIRouter, Path
-from api.app import note_model
+from fastapi import APIRouter, Path, Depends
+from api.app import note_model, user_model
+from api.models.notes import NoteData
+from api.utils.session import SessionManager, get_session_manager
 
 router = APIRouter(
     prefix='/api',
@@ -59,12 +61,14 @@ async def get_notes_by_field(
 
 @router.post("/notes/create")
 async def create_note(
-    user_id: int, content: str, title: Optional[str] = None
+    item: NoteData, session: SessionManager = Depends(get_session_manager)
 ) -> dict:
     """Create a new note."""
-    new_note = note_model.create_a_new_note(
-        user_id=user_id, title=title, content=content
-    )
+    if item.user_id == 0 or not item.user_id:
+        item.user_id = user_model.get_user_by_session_id(session.get_session_id()).id
+
+    new_note = note_model.create_a_new_note(item)
+
     return {
         "message": "Note created successfully",
         "note": new_note,

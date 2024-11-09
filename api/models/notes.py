@@ -22,11 +22,9 @@ def convert_class_note_to_object(note: NoteDb) -> dict:
 
 class NoteData(BaseModel):
     """Class to handle Note data operations"""
-    user_id: Optional[int] = None
+    user_id: int
     title: Optional[str] = None
-    content: Optional[str] = None
-    time_created: Optional[str] = None
-    time_edition: Optional[str] = None
+    content: str
 
 
 class Note():
@@ -220,15 +218,13 @@ class Note():
     #     finally:
     #         self.sess.close()
 
-    def create_a_new_note(
-        self, user_id: int, content: str, title: Union[str, None] = None,
-    ) -> dict:
+    def create_a_new_note(self, item: NoteData) -> dict:
         """Creates a new note with the given content and title."""
         try:
             new_note = NoteDb(
-                user_id=user_id,
-                content=content,
-                title=title,
+                user_id=item.user_id,
+                content=item.content,
+                title=item.title,
             )
             self.sess.add(new_note)
             self.sess.commit()
