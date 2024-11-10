@@ -11,6 +11,7 @@ from api.utils.session import SessionManager, get_session_manager
 
 router = APIRouter(
     prefix='/api',
+    tags=['user-api']
 )
 
 
