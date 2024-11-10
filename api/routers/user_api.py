@@ -227,7 +227,7 @@ async def delete_user_account_completely(
         "status": 500
     }
 
-@router.post("/users/logout")
+@router.delete("/users/logout")
 async def logout_user(session: SessionManager = Depends(get_session_manager)) -> dict:
     """Logout user"""
     session.clear_session()
