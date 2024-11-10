@@ -1,7 +1,8 @@
 """app.py"""
 
-from typing import Optional, Annotated, Union
-from fastapi import APIRouter, Query, Path, Request
+from typing import Union
+from fastapi import APIRouter
+from pydantic import BaseModel
 from api.models.users import User
 from api.models.notes import Note
 
@@ -9,6 +10,12 @@ from api.models.notes import Note
 router = APIRouter()
 user_model = User()
 note_model = Note()
+
+
+class Test(BaseModel):
+    """Test class to test the API endpoints"""
+    title: Union[str, None]
+    search: Union[set, None]
 
 
 @router.get("/")
@@ -34,8 +41,15 @@ async def home():
 #     request: Request,
 # ):
 #     """index Page"""
-#     print(name, search)
+#     print()
 
+
+@router.put("/index")
+async def index(items: Test):
+    """index Page"""
+    print(
+        f"\n\nTitle: {items.title}\nSearch: {items.search}\n\n"
+    )
 
 # @router.get("/register")
 # for get html register
