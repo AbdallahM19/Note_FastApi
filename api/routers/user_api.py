@@ -2,7 +2,7 @@
 
 from typing import Union, Optional, Annotated  #, List
 from uuid import uuid4
-from fastapi import APIRouter, HTTPException, Query, Path, Depends
+from fastapi import APIRouter, HTTPException, Query, Path, Depends, Body
 from api.app import user_model
 from api.database import UserDb
 from api.models.users import UserAccount, convert_class_user_to_object
@@ -166,10 +166,52 @@ async def update_user_data(
         Union[int, str], Path(
             title= "Update user by id or 'me'",
             description= "Update user data by id or 'me' to update current user data",
-            gt=0
+            gt=0,
+            examples=[
+                {
+                    "user_id": 14
+                },
+                {
+                    "user_id": "me"
+                }
+            ]
         )
     ],
-    user_account: UserAccount,
+    user_account: Annotated[
+        UserAccount,
+        Body(
+            examples=[
+                {
+                    "username": "Mohamed",
+                    "email": "mohammed123@example.com",
+                    "hashed_password": "mohammed@123",
+                    "date_of_birth": "11-1-2002",
+                    "description": "my name is mohamed, i have big house in new york",
+                },
+                {
+                    "username": "john",
+                    "email": "johnJ2@example.com",
+                    "hashed_password": "johnJ2@123",
+                    "date_of_birth": "",
+                    "description": "",
+                },
+                {
+                    "username": "alex",
+                    "email": "alex123@example.com",
+                    "hashed_password": "alexA",
+                    "date_of_birth": "24-5-2002",
+                    "description": "",
+                },
+                {
+                    "username": "alex",
+                    "email": "alex123@example.com",
+                    "hashed_password": "alexA",
+                    "date_of_birth": "",
+                    "description": "alex john is my name",
+                }
+            ]
+        )
+    ],
     session: SessionManager = Depends(get_session_manager)
 ) -> dict:
     """Update user Account"""
