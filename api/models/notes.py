@@ -8,17 +8,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.database import NoteDb, get_session
 
 
-def convert_class_note_to_object(note: NoteDb) -> dict:
-    """Converts a Note_db object to a Note dict"""
-    return {
-        "id": note.id,
-        "user_id": note.user_id,
-        "title": note.title,
-        "content": note.content,
-        "time_created": note.time_created,
-        "time_edition": note.time_edition,
-    }
-
 
 class NoteData(BaseModel):
     """Class to handle Note data operations"""
@@ -83,7 +72,7 @@ class Note():
         try:
             note = self.sess.query(NoteDb).filter(NoteDb.id == note_id).first()
             if note:
-                return convert_class_note_to_object(note)
+                return self.convert_class_note_to_object(note)
             return f"Note with id {note_id} not found"
         except Exception as e:
             raise SQLAlchemyError(
@@ -110,9 +99,9 @@ class Note():
                 return "No notes found"
 
             if isinstance(notes, list) and len(notes) == 1:
-                return convert_class_note_to_object(notes[0])
+                return self.convert_class_note_to_object(notes[0])
             return [
-                convert_class_note_to_object(note)
+                self.convert_class_note_to_object(note)
                 for note in notes
             ]
         except Exception as e:
@@ -156,9 +145,9 @@ class Note():
                 return f"No notes found '{query}' for the search query."
 
             if isinstance(notes, list) and len(notes) == 1:
-                return convert_class_note_to_object(notes[0])
+                return self.convert_class_note_to_object(notes[0])
             return [
-                convert_class_note_to_object(note)
+                self.convert_class_note_to_object(note)
                 for note in notes
             ]
         except Exception as e:
@@ -228,7 +217,7 @@ class Note():
             )
             self.sess.add(new_note)
             self.sess.commit()
-            return convert_class_note_to_object(new_note)
+            return self.convert_class_note_to_object(new_note)
         except Exception as e:
             raise SQLAlchemyError(f"An error occurred while creating a new note: {e}") from e
         finally:
@@ -254,7 +243,7 @@ class Note():
             old_note.time_edition = datetime.now()
 
             self.sess.commit()
-            return convert_class_note_to_object(old_note)
+            return self.convert_class_note_to_object(old_note)
         except Exception as e:
             raise SQLAlchemyError(f"An error occurred while updating note data: {e}") from e
         finally:
@@ -272,6 +261,17 @@ class Note():
             raise SQLAlchemyError(f"An error occurred while deleting note by ID: {e}") from e
         finally:
             self.sess.close()
+
+    def convert_class_note_to_object(cls, note: NoteDb) -> dict:
+        """Converts a Note_db object to a Note dict"""
+        return {
+            "id": note.id,
+            "user_id": note.user_id,
+            "title": note.title,
+            "content": note.content,
+            "time_created": note.time_created,
+            "time_edition": note.time_edition,
+        }
 
 
     # def get_note_by_id(self, note_id):
