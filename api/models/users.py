@@ -7,21 +7,6 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.database import UserDb, get_session
 
 
-def convert_class_user_to_object(user: UserDb) -> dict:
-    """Convert a UserDb object to a User dict"""
-    return {
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "hashed_password": user.hashed_password,
-        "session_id": user.session_id,
-        "time_created": user.time_created,
-        "last_opened": user.last_opened,
-        "date_of_birth": user.date_of_birth,
-        "description": user.description,
-    }
-
-
 class UserAccount(BaseModel):
     """User account model."""
     username: Optional[str] = None
@@ -149,7 +134,7 @@ class User():
             ).first()
             if user:
                 if user.hashed_password == password:
-                    return convert_class_user_to_object(user)
+                    return self.convert_class_user_to_object(user)
                 return "Invalid password. password not correct"
             return "Invalid username. user not exists"
         except SQLAlchemyError as e:
@@ -163,15 +148,16 @@ class User():
             new_user = UserDb(**kwargs)
             self.sess.add(new_user)
             self.sess.commit()
-            return convert_class_user_to_object(new_user)
+            return self.convert_class_user_to_object(new_user)
         except SQLAlchemyError as e:
             self.sess.rollback()
             raise SQLAlchemyError(f"Error inserting new user: {e}") from e
         finally:
             self.sess.close()
 
-    def update_user_account(self, **kwargs: dict) -> dict:
+    def update_user_account(self, kwargs: dict) -> dict:
         """Update user account information"""
+        print(kwargs)
         try:
             user = None
 
@@ -179,10 +165,9 @@ class User():
                 user = self.sess.query(UserDb).filter(
                     UserDb.session_id == kwargs['session_id']
                 ).first()
-
-            if kwargs['id']:
+            elif kwargs['user_id']:
                 user = self.sess.query(UserDb).filter(
-                    UserDb.id == kwargs['id']
+                    UserDb.id == kwargs['user_id']
                 ).first()
 
             if user:
@@ -190,7 +175,7 @@ class User():
                     if key not in ['id', 'session_id'] and value is not None:
                         setattr(user, key, value)
                 self.sess.commit()
-                return convert_class_user_to_object(user)
+                return self.convert_class_user_to_object(user)
             return False
         except SQLAlchemyError as e:
             self.sess.rollback()
@@ -214,3 +199,18 @@ class User():
             raise SQLAlchemyError(f"Error deleting user with id ({user_id}): {e}") from e
         finally:
             self.sess.close()
+
+    @classmethod
+    def convert_class_user_to_object(cls, user: UserDb) -> dict:
+        """Convert a UserDb object to a User dict"""
+        return {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "hashed_password": user.hashed_password,
+            "session_id": user.session_id,
+            "time_created": user.time_created,
+            "last_opened": user.last_opened,
+            "date_of_birth": user.date_of_birth,
+            "description": user.description,
+        }
