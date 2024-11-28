@@ -2,10 +2,10 @@
 
 from typing import Union, Optional, Annotated  #, List
 from uuid import uuid4
-from fastapi import APIRouter, HTTPException, Query, Path, Depends, Body
+from fastapi import APIRouter, HTTPException, Query, Path, Depends, Body, Request
 from api.app import user_model
 from api.database import UserDb
-from api.models.users import UserAccount, convert_class_user_to_object
+from api.models.users import UserAccount
 from api.utils.session import SessionManager, get_session_manager
 
 
@@ -33,7 +33,7 @@ async def get_user(
 
     match field:
         case "me":
-            users_data = user_model.get_user_by_session_id(session.get_session_id())
+            users_data = user_model.get_user_by_session_id(session.session_id)
         case "id" if user_id:
             users_data = user_model.get_user_by_id(user_id)
         case "name" if name:
@@ -47,54 +47,17 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     if isinstance(users_data, UserDb):
-        return convert_class_user_to_object(users_data)
+        return user_model.convert_class_user_to_object(users_data)
 
     if isinstance(users_data, list):
         if len(users_data) == 1:
-            return convert_class_user_to_object(users_data[0])
+            return user_model.convert_class_user_to_object(users_data[0])
         return [
-            convert_class_user_to_object(i)
+            user_model.convert_class_user_to_object(i)
             for i in users_data
         ]
 
     return {"message": users_data}
-
-
-@router.post("/users/register")
-async def register(
-    username: Annotated[str, Query(min_length=3, max_length=50)],
-    email: str, password: str, date_of_birth: Optional[str] = None,
-    description: Annotated[Optional[str], Query(max_length=500)] = None,
-    session: SessionManager = Depends(get_session_manager)
-) -> dict:
-    """Register a new user"""
-    try:
-        existing_user = user_model.check_if_user_exists(username, email)
-
-        if existing_user:
-            return {
-                "message": "User already exists. Please try with different username or email."
-                if existing_user.username == username else
-                "User already exists. Please try with different email.",
-                "status": 400
-            }
-
-        session_id = str(uuid4())
-
-        current_user = user_model.insert_new_user(
-            username=username, email=email, hashed_password=password,
-            date_of_birth=date_of_birth, description=description,
-            session_id=session_id
-        )
-
-        session.set_session_id(session_id)
-
-        return {"message": "User created successfully", "user": current_user}
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"An error occurred while registering the user: {str(e)}"
-        ) from e
 
 
 # @router.post("/users/login")
@@ -122,13 +85,12 @@ async def register(
 
 @router.post("/users/login")
 async def login(
-    password: str,
+    request: Request, password: str,
     username: Annotated[Optional[str], Query(min_length=3, max_length=50)] = None,
     email: Annotated[Optional[str], Query(
         max_length=100,
         pattern=r"^([a-z]+)((([a-z]+)|(_[a-z]+))?(([0-9]+)|(_[0-9]+))?)*@([a-z]+).([a-z]+)$"
-    )] = None,
-    session: SessionManager = Depends(get_session_manager)
+    )] = None
 ) -> dict:
     """Login a user and set session data."""
     try:
@@ -136,9 +98,10 @@ async def login(
 
         if existed_user:
             if existed_user.hashed_password == password:
-                current_user = convert_class_user_to_object(existed_user)
+                current_user = user_model.convert_class_user_to_object(existed_user)
 
-                session.set_session_id(current_user["session_id"])
+                request.session["id"] = current_user["id"]
+                request.session["session_id"] = current_user["session_id"]
 
                 return {
                     "status": 200,
@@ -160,13 +123,48 @@ async def login(
         ) from e
 
 
+@router.post("/users/register")
+async def register(
+    request: Request,
+    username: Annotated[str, Query(min_length=3, max_length=50)],
+    email: str, password: str, date_of_birth: Optional[str] = None,
+    description: Annotated[Optional[str], Query(max_length=500)] = None,
+) -> dict:
+    """Register a new user"""
+    try:
+        existing_user = user_model.check_if_user_exists(username, email)
+
+        if existing_user:
+            return {
+                "message": "User already exists. Please try with different username or email."
+                if existing_user.username == username else
+                "User already exists. Please try with different email.",
+                "status": 400
+            }
+
+        current_user = user_model.insert_new_user(
+            username=username, email=email, hashed_password=password,
+            date_of_birth=date_of_birth, description=description,
+            session_id=str(uuid4())
+        )
+
+        request.session["id"] = current_user["id"]
+        request.session["session_id"] = current_user["session_id"]
+
+        return {"message": "User created successfully", "user": current_user}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while registering the user: {str(e)}"
+        ) from e
+
+
 @router.put("/users/{user_id}/update")
 async def update_user_data(
     user_id: Annotated[
         Union[int, str], Path(
             title= "Update user by id or 'me'",
             description= "Update user data by id or 'me' to update current user data",
-            gt=0,
             examples=[
                 {
                     "user_id": 14
@@ -218,14 +216,14 @@ async def update_user_data(
     try:
         user_updated = None
 
+        user_dict = user_account.dict()
+
         if isinstance(user_id, str) and user_id == 'me':
-            user_updated = user_model.update_user_account(
-                session_id=session.get_session_id(), **user_account
-            )
-        if isinstance(user_id, int):
-            user_updated = user_model.update_user_account(
-                id=user_id, **user_account
-            )
+            user_dict["session_id"] = session.session_id
+        elif isinstance(user_id, int) and user_id >= 1:
+            user_dict["user_id"] = session.user_id
+
+        user_updated = user_model.update_user_account(user_dict)
 
         if user_updated:
             return {
@@ -254,11 +252,11 @@ async def delete_user_account_completely(
             gt=0
         )
     ],
-    session: SessionManager = Depends(get_session_manager)
+    request: Request
 ) -> dict:
     """Delete user Account permanently"""
     if user_model.delete_user(user_id):
-        session.clear_session()
+        request.session.clear()
 
         return {
             "message": "User account has been deleted successfully",
@@ -270,7 +268,8 @@ async def delete_user_account_completely(
     }
 
 @router.delete("/users/logout")
-async def logout_user(session: SessionManager = Depends(get_session_manager)) -> dict:
+async def logout_user(request: Request) -> dict:
     """Logout user"""
-    session.clear_session()
+    request.session.clear()
+
     return {"message": "User logged out successfully", "status": 200}
