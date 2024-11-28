@@ -5,21 +5,19 @@ from fastapi import Request
 
 class SessionManager:
     """Session manager for FastAPI."""
-    def __init__(self, request: Request):
-        self.request = request
+    def __init__(self, user_id: int = None, session_id: str = None):
+        self.user_id = user_id
+        self.session_id = session_id
 
-    def get_session_id(self) -> str:
+    @classmethod
+    async def get_session_id(cls, request: Request):
         """Get session id from session object."""
-        return self.request.session.get("session_id")
+        return cls(
+            user_id=request.session.get("id"),
+            session_id=request.session.get("session_id")
+        )
 
-    def set_session_id(self, session_id: str):
-        """Set session id in session object."""
-        self.request.session["session_id"] = session_id
 
-    def clear_session(self):
-        """Clear session object."""
-        self.request.session.clear()
-
-def get_session_manager(request: Request) -> SessionManager:
+async def get_session_manager(request: Request) -> SessionManager:
     """Get session manager instance from request."""
-    return SessionManager(request)
+    return await SessionManager.get_session_id(request)
