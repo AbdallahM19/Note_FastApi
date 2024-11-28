@@ -66,7 +66,7 @@ async def create_note(
 ) -> dict:
     """Create a new note."""
     if item.user_id == 0 or not item.user_id:
-        item.user_id = user_model.get_user_by_session_id(session.get_session_id()).id
+        item.user_id = session.user_id
 
     new_note = note_model.create_a_new_note(item)
 
