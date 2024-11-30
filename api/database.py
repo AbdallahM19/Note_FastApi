@@ -39,8 +39,8 @@ class NoteDb(Base):
     user_id = Column(Integer, nullable=False)
     title = Column(String(100))
     content = Column(Text, nullable=False)
-    time_created = Column(DateTime, default=datetime.now)
-    time_edition = Column(DateTime, default=datetime.now)
+    time_created = Column(DateTime)
+    time_edition = Column(DateTime)
 
 
 def create_engine_and_connect():
