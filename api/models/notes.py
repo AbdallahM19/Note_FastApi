@@ -1,19 +1,25 @@
 """notes.py"""
 
 from typing import Union, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 # from sqlalchemy import and_, or_
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.exc import SQLAlchemyError
 from api.database import NoteDb, get_session
 
 
 
-class NoteData(BaseModel):
+class BaseNote(BaseModel):
     """Class to handle Note data operations"""
     user_id: int
     title: Optional[str] = None
     content: str
+    time_created: Optional[datetime] = Field(default_factory=datetime.utcnow)
+    time_edition: Optional[datetime] = Field(default_factory=datetime.utcnow)
+
+
+class NoteDetails(BaseNote):
+    id: int
 
 
 class Note():
