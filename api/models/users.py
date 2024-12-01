@@ -169,7 +169,6 @@ class User():
 
     def update_user_account(self, kwargs: dict) -> dict:
         """Update user account information"""
-        print(kwargs)
         try:
             user = None
 
