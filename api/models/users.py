@@ -7,11 +7,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from api.database import UserDb, get_session
 
 
-class UserAccount(BaseModel):
-    """User account model."""
+class BaseUser(BaseModel):
+    """User account model"""
     username: Optional[str] = None
     email: Optional[str] = None
-    hashed_password: Optional[str] = None
     date_of_birth: Optional[str] = None
     description: Optional[str] = None
 
