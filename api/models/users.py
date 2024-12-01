@@ -200,10 +200,12 @@ class User():
             user = self.sess.query(UserDb).filter(
                 UserDb.id == user_id
             ).first()
+
             if user:
                 self.sess.delete(user)
                 self.sess.commit()
                 return True
+
             return False
         except SQLAlchemyError as e:
             self.sess.rollback()
