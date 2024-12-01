@@ -15,6 +15,19 @@ class BaseUser(BaseModel):
     description: Optional[str] = None
 
 
+class UserIn(BaseUser):
+    """User account model with password"""
+    hashed_password: Optional[str] = None
+
+
+class UserDetails(BaseUser):
+    id: int
+    hashed_password: Optional[str] = None
+    session_id: Optional[str] = None
+    time_created: Optional[str] = None
+    last_opened: Optional[str] = None
+
+
 class User():
     """User Class"""
     def __init__(self):
