@@ -154,13 +154,14 @@ class User():
         finally:
             self.sess.close()
 
-    def insert_new_user(self, **kwargs: dict) -> dict:
+    def insert_new_user(self, **kwargs: dict):
         """Insert new user into database"""
         try:
             new_user = UserDb(**kwargs)
             self.sess.add(new_user)
             self.sess.commit()
-            return self.convert_class_user_to_object(new_user)
+            self.sess.refresh(new_user)
+            return new_user
         except SQLAlchemyError as e:
             self.sess.rollback()
             raise SQLAlchemyError(f"Error inserting new user: {e}") from e
@@ -176,9 +177,9 @@ class User():
                 user = self.sess.query(UserDb).filter(
                     UserDb.session_id == kwargs['session_id']
                 ).first()
-            elif kwargs['user_id']:
+            elif kwargs['id']:
                 user = self.sess.query(UserDb).filter(
-                    UserDb.id == kwargs['user_id']
+                    UserDb.id == kwargs['id']
                 ).first()
 
             if user:
@@ -186,7 +187,7 @@ class User():
                     if key not in ['id', 'session_id'] and value is not None:
                         setattr(user, key, value)
                 self.sess.commit()
-                return self.convert_class_user_to_object(user)
+                return True
             return False
         except SQLAlchemyError as e:
             self.sess.rollback()
