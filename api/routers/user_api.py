@@ -5,7 +5,7 @@ from uuid import uuid4
 from fastapi import APIRouter, HTTPException, Query, Path, Depends, Body, Request
 from api.app import user_model
 from api.database import UserDb
-from api.models.users import UserAccount
+from api.models.users import BaseUser, UserIn, UserDetails
 from api.utils.session import SessionManager, get_session_manager
 
 
@@ -23,7 +23,7 @@ async def get_user(
     skip: Optional[int] = None,
     limit: Optional[int] = None,
     session: SessionManager = Depends(get_session_manager)
-) -> Union[str, dict, list]:
+) -> Union[str, BaseUser, list[BaseUser]]:
     """
     Get user by id, or
     get all users with optional filtering and pagination.
@@ -47,15 +47,12 @@ async def get_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     if isinstance(users_data, UserDb):
-        return user_model.convert_class_user_to_object(users_data)
+        return users_data
 
     if isinstance(users_data, list):
         if len(users_data) == 1:
-            return user_model.convert_class_user_to_object(users_data[0])
-        return [
-            user_model.convert_class_user_to_object(i)
-            for i in users_data
-        ]
+            return users_data
+        return users_data
 
     return {"message": users_data}
 
@@ -91,67 +88,79 @@ async def login(
         max_length=100,
         pattern=r"^([a-z]+)((([a-z]+)|(_[a-z]+))?(([0-9]+)|(_[0-9]+))?)*@([a-z]+).([a-z]+)$"
     )] = None
-) -> dict:
+) -> BaseUser:
     """Login a user and set session data."""
+    if not username and not email:
+        raise HTTPException(
+            status_code=400,
+            detail="Username or email is required"
+        )
+
     try:
-        existed_user = user_model.check_if_user_exists(username=username, email=email)
+        current_user = user_model.check_if_user_exists(username=username, email=email)
 
-        if existed_user:
-            if existed_user.hashed_password == password:
-                current_user = user_model.convert_class_user_to_object(existed_user)
+        if not current_user:
+            raise HTTPException(
+                status_code=404,
+                detail="Invalid username or email. user not found"
+            )
 
-                request.session["id"] = current_user["id"]
-                request.session["session_id"] = current_user["session_id"]
+        if current_user.hashed_password != password:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid password. password not correct"
+            )
 
-                return {
-                    "status": 200,
-                    "message": "User logged in successfully",
-                    "user": current_user
-                }
-            return {
-                "status": 401,
-                "message": "Invalid password. password not correct",
-            }
-        return {
-            "status": 401,
-            "message": "Invalid username. user not exists",
-        }
+        # Set session data for authenticated user
+        request.session["id"] = current_user.id
+        request.session["session_id"] = current_user.session_id
+
+        return current_user
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"An error occurred while logging the user: {str(e)}"
-        ) from e
+        )
 
 
 @router.post("/users/register")
 async def register(
     request: Request,
     username: Annotated[str, Query(min_length=3, max_length=50)],
-    email: str, password: str, date_of_birth: Optional[str] = None,
+    email: str,
+    password: str,
+    date_of_birth: Optional[str] = None,
     description: Annotated[Optional[str], Query(max_length=500)] = None,
-) -> dict:
+) -> BaseUser:
     """Register a new user"""
     try:
         existing_user = user_model.check_if_user_exists(username, email)
 
         if existing_user:
-            return {
-                "message": "User already exists. Please try with different username or email."
-                if existing_user.username == username else
-                "User already exists. Please try with different email.",
-                "status": 400
-            }
+            error_field = "username" if existing_user.username == username else "email"
+            raise HTTPException(
+                status_code=400,
+                detail=f"User already exists. Please try with different {error_field}"
+            )
 
+        # Insert new user and set session details
         current_user = user_model.insert_new_user(
-            username=username, email=email, hashed_password=password,
-            date_of_birth=date_of_birth, description=description,
+            username=username,
+            email=email,
+            hashed_password=password,
+            date_of_birth=date_of_birth,
+            description=description,
             session_id=str(uuid4())
         )
 
-        request.session["id"] = current_user["id"]
-        request.session["session_id"] = current_user["session_id"]
+        request.session["id"] = current_user.id
+        request.session["session_id"] = current_user.session_id
 
-        return {"message": "User created successfully", "user": current_user}
+        return current_user
+    except HTTPException as http_ex:
+        raise http_ex
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -176,7 +185,7 @@ async def update_user_data(
         )
     ],
     user_account: Annotated[
-        UserAccount,
+        UserIn,
         Body(
             examples=[
                 {
@@ -221,14 +230,17 @@ async def update_user_data(
         if isinstance(user_id, str) and user_id == 'me':
             user_dict["session_id"] = session.session_id
         elif isinstance(user_id, int) and user_id >= 1:
-            user_dict["user_id"] = session.user_id
+            user_dict["id"] = user_id
 
-        user_updated = user_model.update_user_account(user_dict)
-
-        if user_updated:
+        if user_model.update_user_account(user_dict):
             return {
                 "message": "User data updated successfully",
-                "user_data": user_updated,
+                "user_data": BaseUser(
+                    username=user_dict["username"],
+                    email=user_dict["email"],
+                    date_of_birth=user_dict["date_of_birth"],
+                    description=user_dict["description"]
+                ),
                 "status": 200
             }
         return {
@@ -246,22 +258,24 @@ async def update_user_data(
 @router.delete("/users/{user_id}/delete")
 async def delete_user_account_completely(
     user_id: Annotated[
-        int, Path(
+        Union[str, int], Path(
             title="The ID of the user to delete.",
             description="This will delete the user account completely.",
-            gt=0
         )
     ],
     request: Request
 ) -> dict:
     """Delete user Account permanently"""
-    if user_model.delete_user(user_id):
+    if isinstance(user_id, str) and user_id == "me":
+        user_id = request.session.get("id")
         request.session.clear()
 
+    if user_model.delete_user(user_id):
         return {
             "message": "User account has been deleted successfully",
             "status": 200
         }
+
     return {
         "message": "User account could not be deleted",
         "status": 500
