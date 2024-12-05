@@ -11,7 +11,7 @@ from api.database import NoteDb, get_session
 
 class BaseNote(BaseModel):
     """Class to handle Note data operations"""
-    user_id: int
+    user_id: Optional[int] = None
     title: Optional[str] = None
     content: str
     time_created: Optional[datetime] = Field(default_factory=datetime.utcnow)
@@ -78,8 +78,8 @@ class Note():
         try:
             note = self.sess.query(NoteDb).filter(NoteDb.id == note_id).first()
             if note:
-                return self.convert_class_note_to_object(note)
-            return f"Note with id {note_id} not found"
+                return note
+            return f"Note (id = {note_id}) not found"
         except Exception as e:
             raise SQLAlchemyError(
                 f"An error occurred while fetching note by id: {e}"
@@ -105,11 +105,8 @@ class Note():
                 return "No notes found"
 
             if isinstance(notes, list) and len(notes) == 1:
-                return self.convert_class_note_to_object(notes[0])
-            return [
-                self.convert_class_note_to_object(note)
-                for note in notes
-            ]
+                return notes[0]
+            return notes
         except Exception as e:
             raise SQLAlchemyError(
                 f"An error occurred while fetching note by id: {e}"
@@ -126,14 +123,9 @@ class Note():
             notes = None
             q = query.lower()
 
-            if field == "title":
-                notes = self.sess.query(NoteDb).filter(
-                    NoteDb.title.like(f'%{q}%')
-                )
-            elif field == "content":
-                notes = self.sess.query(NoteDb).filter(
-                    NoteDb.content.like(f'%{q}%')
-                )
+            notes = self.sess.query(NoteDb).filter(
+                getattr(NoteDb, field).like(f'%{q}%')
+            )
 
             if not notes:
                 return "No notes found"
@@ -151,11 +143,8 @@ class Note():
                 return f"No notes found '{query}' for the search query."
 
             if isinstance(notes, list) and len(notes) == 1:
-                return self.convert_class_note_to_object(notes[0])
-            return [
-                self.convert_class_note_to_object(note)
-                for note in notes
-            ]
+                return notes[0]
+            return notes
         except Exception as e:
             raise SQLAlchemyError(
                 f"An error occurred while searching notes: {e}"
@@ -213,17 +202,23 @@ class Note():
     #     finally:
     #         self.sess.close()
 
-    def create_a_new_note(self, item: NoteData) -> dict:
+    def create_a_new_note(self, item: BaseNote) -> NoteDetails:
         """Creates a new note with the given content and title."""
         try:
             new_note = NoteDb(
                 user_id=item.user_id,
                 content=item.content,
                 title=item.title,
+                time_created=item.time_created,
+                time_edition=item.time_edition,
             )
+
             self.sess.add(new_note)
             self.sess.commit()
-            return self.convert_class_note_to_object(new_note)
+            
+            self.sess.refresh(new_note)
+
+            return new_note
         except Exception as e:
             raise SQLAlchemyError(f"An error occurred while creating a new note: {e}") from e
         finally:
@@ -233,8 +228,9 @@ class Note():
         self,
         note_id: int,
         content: str,
-        title: Union[str, None] = None
-    ) -> dict:
+        time_edition: datetime,
+        title: Union[str, None] = None,
+    ) -> NoteDetails:
         """Updates the note data in the database."""
         try:
             old_note = self.sess.query(NoteDb).filter(
@@ -246,10 +242,12 @@ class Note():
 
             old_note.content = content
             old_note.title = title
-            old_note.time_edition = datetime.now()
+            old_note.time_edition = time_edition
 
             self.sess.commit()
-            return self.convert_class_note_to_object(old_note)
+            self.sess.refresh(old_note)
+
+            return old_note
         except Exception as e:
             raise SQLAlchemyError(f"An error occurred while updating note data: {e}") from e
         finally:
