@@ -1,9 +1,11 @@
 """note_api.py"""
 
+from datetime import datetime
 from typing import Union, Optional, Annotated
 from fastapi import APIRouter, Path, Depends
+from pydantic import Field
 from api.app import note_model, user_model
-from api.models.notes import NoteData
+from api.models.notes import BaseNote, NoteDetails
 from api.utils.session import SessionManager, get_session_manager
 
 router = APIRouter(
@@ -19,7 +21,7 @@ async def get_notes_by_field(
     note_id: Optional[int] = None,
     skip: Optional[int] = None,
     limit: Optional[int] = None,
-) -> Union[list, dict]:
+) -> Union[dict, NoteDetails, list[NoteDetails]]:
     """Get notes by field"""
     # if field not in ['title', 'content', 'list', 'id']:
     #     raise ValueError(
@@ -33,14 +35,14 @@ async def get_notes_by_field(
                 notes_data = note_model.get_note_by_id(note_id)
             case 'list':
                 notes_data = note_model.get_all_notes(skip=skip, limit=limit)
-            case 'title' if query:
+            case 'title' | 'content' if query:
                 notes_data = note_model.search_notes(
-                    field="title", query=query, skip=skip, limit=limit
+                    field=field, query=query, skip=skip, limit=limit
                 )
-            case 'content' if query:
-                notes_data = note_model.search_notes(
-                    field="content", query=query, skip=skip, limit=limit
-                )
+            # case 'content' if query:
+            #     notes_data = note_model.search_notes(
+            #         field="content", query=query, skip=skip, limit=limit
+            #     )
             case 'title' | 'content' if query is None:
                 notes_data = f"Invalid query for field: {field}."
             case _:
@@ -59,10 +61,9 @@ async def get_notes_by_field(
     #     field=field, query=query, note_id=note_id, skip=skip, limit=limit
     # )
 
-
-@router.post("/notes/create")
+@router.post("/notes/create", response_model=NoteDetails)
 async def create_note(
-    item: NoteData, session: SessionManager = Depends(get_session_manager)
+    item: BaseNote, session: SessionManager = Depends(get_session_manager)
 ) -> dict:
     """Create a new note."""
     if item.user_id == 0 or not item.user_id:
@@ -70,13 +71,10 @@ async def create_note(
 
     new_note = note_model.create_a_new_note(item)
 
-    return {
-        "message": "Note created successfully",
-        "note": new_note,
-    }
+    return new_note
 
 
-@router.put("/notes/{note_id}/update")
+@router.put("/notes/{note_id}/update", response_model=NoteDetails)
 async def update_note(
     note_id: Annotated[
         int, Path(
@@ -86,11 +84,13 @@ async def update_note(
         )
     ],
     content: str,
-    title: Optional[str] = None
-) -> dict:
+    time_edition: datetime = Depends(datetime.now),
+    title: Optional[str] = None,
+):
     """Update a note."""
     updated_note = note_model.update_note_data(
-        note_id=note_id, content=content, title=title
+        note_id=note_id, content=content,
+        title=title, time_edition=time_edition
     )
     return updated_note
 
@@ -107,9 +107,9 @@ async def delete_note_data_permanently(
 ) -> dict:
     """Delete note data permanently."""
     note_model.delete_note_by_id(note_id)
-    return {"message": f"Note with id {note_id} has been deleted permanently."}
-
-
+    return {
+        "message": f"Note with id {note_id} has been deleted permanently."
+    }
 
 # @router.get("/notes")
 # async def get_all_or_limit_notes(
